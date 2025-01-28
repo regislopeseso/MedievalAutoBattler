@@ -1,16 +1,16 @@
-﻿using ProjectThreeAPI.Entities.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿
+using ProjectThreeAPI.Models.Enums;
 
-namespace ProjectThreeAPI.Entities
+namespace ProjectThreeAPI.Models.Dtos.Response
 {
-    [Table("Cards")]
-    public class Card
+    public class CardCreateAdminResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public int Power { get; set; }
         public int UpperHand { get; set; }
         public CardType Type {get; set;}
-        public bool IsDeleted { get; set; }
+        
+        //public bool IsDeleted { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ProjectThreeAPI.Entities.Enums
+﻿namespace ProjectThreeAPI.Models.Enums
 {
     public enum CardType
     {

@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ProjectThreeAPI.Service;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<AdminCardService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

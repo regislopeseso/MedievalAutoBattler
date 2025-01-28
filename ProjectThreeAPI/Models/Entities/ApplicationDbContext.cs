@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Entities;
+using ProjectThreeAPI.Models.Entities;
 
 public class ApplicationDbContext : DbContext
 {
