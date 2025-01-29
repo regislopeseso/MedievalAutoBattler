@@ -44,13 +44,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(int id)
+        public async Task<IActionResult> Update(CardUpdateAdminRequest card)
         {
-            var updatedCard = await _adminCardService.Update(id);
+            var message = await _adminCardService.Update(card);
 
-            var response = new Response<CardUpdateAdminResponse>()
+            var response = new Response<string>()
             {
-                Content = updatedCard,
+                Message = message
             };
 
             return new JsonResult(response);

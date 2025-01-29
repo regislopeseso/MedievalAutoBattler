@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Models.Entities;
+using ProjectThreeAPI.Models.Enums;
 using ProjectThreeAPI.Utilities;
 
 namespace ProjectThreeAPI.Service
@@ -61,6 +63,7 @@ namespace ProjectThreeAPI.Service
         {
             return await this._daoDBcontext
                 .Cards
+                .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
                 .Select(a => new CardReadAdminResponse
                 {
@@ -74,42 +77,64 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync();
         }
 
-        public async Task<(CardUpdateAdminResponse, string)> Update(CardUpdateAdminRequest card)
+        public async Task<string> Update(CardUpdateAdminRequest card)
         {
-            if (id == null || id <= 0)
+            var (isValid, message) = this.UpdateIsValid(card);         
+
+            if (isValid == false)
             {
-                return (null, "Id inexistente");
+                return message;
             }
-            var card = await _daoDBcontext
+
+            var cardDb = await _daoDBcontext
                 .Cards
-                .AsNoTracking()
-                .Where(a => a.Id == id && a.IsDeleted == false)
-                .Select(b => new CardUpdateAdminResponse
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    Power = b.Power,
-                    UpperHand = b.UpperHand,
-                })
-                .FirstOrDefaultAsync();
+                .Where(a => a.IsDeleted == false)
+                .FirstOrDefaultAsync(a => a.Id == card.Id);
 
-            if (card == null)
+          
+            if (cardDb == null)
             {
-                return (null, "Carta inexistente");
-            }
+                return $"Card not found: {card.Name}";
+            }       
 
-            return (card, string.);
+            cardDb.Name = card.Name;
+            cardDb.Power = card.Power;
+            cardDb.UpperHand = card.UpperHand;
+            cardDb.Type = card.Type;
+            
+            await _daoDBcontext.SaveChangesAsync();          
+
+            return "Update successful";
         }
 
-
-        private (bool, string) EditIsValid(CardUpdateAdminRequest card)
+        private (bool, string) UpdateIsValid(CardUpdateAdminRequest card)
         {
-            if(card == null)
+            if (card == null)
             {
-                return (false, "Nenhuma informação enviada");
+                return (false, "No information provided");
             }
 
-            if(string)
+            if (string.IsNullOrEmpty(card.Name) == true)
+            {
+                return (false, "Cards name is mandatory");
+            }
+
+            if (card.Power == null || card.Power < 0 || card.Power > 9)
+            {
+                return (false, "Cards power must be between 0 and 9");
+            }
+
+            if (card.UpperHand == null || card.UpperHand < 0 || card.UpperHand > 9)
+            {
+                return (false, "Cards upper hand must be between 0 and 9");
+            }
+
+            if (Enum.IsDefined(typeof(CardType), card.Type) == false)
+            {
+                return (false, "Invalid card type. Type must be None (0), Archer (1), Calvary (2), or Spearman (3).");
+            }
+
+            return (true, String.Empty);
         }
     }
 }
