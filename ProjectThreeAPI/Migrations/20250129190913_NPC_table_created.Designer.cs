@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ProjectThreeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250129190913_NPC_table_created")]
+    partial class NPC_table_created
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -19,21 +22,6 @@ namespace ProjectThreeAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("CardNpc", b =>
-                {
-                    b.Property<int>("HandId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NpcsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("HandId", "NpcsId");
-
-                    b.HasIndex("NpcsId");
-
-                    b.ToTable("CardNpc");
-                });
 
             modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
                 {
@@ -53,6 +41,9 @@ namespace ProjectThreeAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("NpcId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Power")
                         .HasColumnType("int");
 
@@ -64,7 +55,9 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("cards");
+                    b.HasIndex("NpcId");
+
+                    b.ToTable("Cards");
                 });
 
             modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
@@ -91,22 +84,19 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("npcs");
+                    b.ToTable("Npcs");
                 });
 
-            modelBuilder.Entity("CardNpc", b =>
+            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
                 {
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Card", null)
-                        .WithMany()
-                        .HasForeignKey("HandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ProjectThreeAPI.Models.Entities.Npc", null)
-                        .WithMany()
-                        .HasForeignKey("NpcsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Hand")
+                        .HasForeignKey("NpcId");
+                });
+
+            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+                {
+                    b.Navigation("Hand");
                 });
 #pragma warning restore 612, 618
         }

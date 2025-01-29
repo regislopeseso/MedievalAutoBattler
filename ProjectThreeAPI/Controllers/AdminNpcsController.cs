@@ -1,42 +1,72 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProjectThreeAPI.Models.Dtos.Request;
+using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Service;
 
 namespace ProjectThreeAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("admin/npcs/[action]")]
     public class AdminNpcsController : ControllerBase
     {
-        private readonly AdminCardService _adminService;
+        private readonly AdminNpcService _adminNpcService;
 
-        public AdminNpcsController()
+        public AdminNpcsController(AdminNpcService adminNpcService)
         {
-            
+            this._adminNpcService = adminNpcService;
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody]CardCreateAdminRequest card)
+        public async Task<IActionResult> Create(NpcCreateAdminRequest npc)
         {
-            return null;
+            var (result, message) = await _adminNpcService.Create(npc);
+
+            var response = new Response<NpcCreateAdminResponse>()
+            {
+                Content = result,
+                Message = message
+            };
+
+            return new JsonResult(response);
         }
 
-        [HttpGet]
-        public IActionResult Read()
-        {
-            return null;
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> Read()
+        //{
+        //    var npcs = await _adminNpcService.Read();
 
-        [HttpPut]
-        public IActionResult Update()
-        {
-            return null;
-        }
+        //    var response = new Response<List<NpcReadAdminResponse>>()
+        //    {
+        //        Content = npcs,
+        //    };
 
-        [HttpDelete]
-        public IActionResult Delete()
-        {
-            return null;
-        }
+        //    return new JsonResult(response);
+        //}
+
+        //[HttpPut]
+        //public async Task<IActionResult> Update(NpcUpdateAdminRequest npc)
+        //{
+        //    var message = await _adminNpcService.Update(npc);
+
+        //    var response = new Response<string>()
+        //    {
+        //        Message = message
+        //    };
+
+        //    return new JsonResult(response);
+        //}
+
+        //[HttpDelete]
+        //public async Task<IActionResult> Delete(int id)
+        //{
+        //    var message = await _adminNpcService.Delete(id);
+
+        //    var response = new Response<string>()
+        //    {
+        //        Message = message
+        //    };
+
+        //    return new JsonResult(response);
+        //}
     }
 }

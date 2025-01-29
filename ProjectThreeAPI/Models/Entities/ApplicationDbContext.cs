@@ -8,4 +8,5 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<Card> Cards { get; set; }
+    public DbSet<Npc> Npcs { get; set; }
 }

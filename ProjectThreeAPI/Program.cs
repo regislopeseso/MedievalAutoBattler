@@ -4,6 +4,7 @@ using ProjectThreeAPI.Service;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<AdminCardService>();
+builder.Services.AddScoped<AdminNpcService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

@@ -57,9 +57,9 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(CardDeleteAdminRequest card)
+        public async Task<IActionResult> Delete(int id)
         {
-            var message = await _adminCardService.Delete(card);
+            var message = await _adminCardService.Delete(id);
 
             var response = new Response<string>()
             {
@@ -68,6 +68,8 @@ namespace ProjectThreeAPI.Controllers
 
             return new JsonResult(response);
         }
+
+
 
     }
 }
