@@ -6,7 +6,7 @@ using ProjectThreeAPI.Service;
 namespace ProjectThreeAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("admin/cards/[action]")]
     public class AdminCardsController : ControllerBase
     {
         private readonly AdminCardService _adminCardService;
@@ -31,15 +31,29 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult Read()
+        public async Task<IActionResult> Read()
         {
-            return null;
+            var cards = await _adminCardService.Read();
+
+            var response = new Response<List<CardReadAdminResponse>>()
+            {
+                Content = cards,
+            };
+
+            return new JsonResult(response);
         }
 
         [HttpPut]
-        public IActionResult Update()
+        public async Task<IActionResult> Update(int id)
         {
-            return null;
+            var updatedCard = await _adminCardService.Update(id);
+
+            var response = new Response<CardUpdateAdminResponse>()
+            {
+                Content = updatedCard,
+            };
+
+            return new JsonResult(response);
         }
 
         [HttpDelete]
