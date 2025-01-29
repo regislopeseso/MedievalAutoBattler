@@ -14,7 +14,7 @@ namespace ProjectThreeAPI.Controllers
         public AdminCardsController(AdminCardService adminCardService)
         {
             this._adminCardService = adminCardService;
-        }      
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create(CardCreateAdminRequest card)
@@ -57,9 +57,16 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public IActionResult Delete()
+        public async Task<IActionResult> Delete(CardDeleteAdminRequest card)
         {
-            return null;
+            var message = await _adminCardService.Delete(card);
+
+            var response = new Response<string>()
+            {
+                Message = message
+            };
+
+            return new JsonResult(response);
         }
 
     }

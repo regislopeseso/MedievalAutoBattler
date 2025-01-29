@@ -19,9 +19,11 @@ namespace ProjectThreeAPI.Service
 
         public async Task<(CardCreateAdminResponse, string)> Create(CardCreateAdminRequest card)
         {
-            if (string.IsNullOrEmpty(card.Name) == true)
+            var (isValid, message) = this.CreateIsValid(card);
+
+            if (isValid == false)
             {
-                return (null, "Erro: nome da carta não pode ser vazio");
+                return (null, message);
             }
 
             var exists = await this._daoDBcontext
@@ -56,7 +58,36 @@ namespace ProjectThreeAPI.Service
                 Type = newCard.Type,
             };
 
-            return (response, "Carta criada com sucesso!");
+            return (response, "Create action successful");
+        }
+        public (bool, string) CreateIsValid(CardCreateAdminRequest card)
+        {
+            if (card == null)
+            {
+                return (false, "No information provided");
+            }
+
+            if (string.IsNullOrEmpty(card.Name) == true)
+            {
+                return (false, "Cards name is mandatory");
+            }
+
+            if (card.Power == null || card.Power < 0 || card.Power > 9)
+            {
+                return (false, "Cards power must be between 0 and 9");
+            }
+
+            if (card.UpperHand == null || card.UpperHand < 0 || card.UpperHand > 9)
+            {
+                return (false, "Cards upper hand must be between 0 and 9");
+            }
+
+            if (Enum.IsDefined(typeof(CardType), card.Type) == false)
+            {
+                return (false, "Invalid card type. Type must be None (0), Archer (1), Calvary (2), or Spearman (3).");
+            }
+
+            return (true, String.Empty);
         }
 
         public async Task<List<CardReadAdminResponse>> Read()
@@ -79,7 +110,7 @@ namespace ProjectThreeAPI.Service
 
         public async Task<string> Update(CardUpdateAdminRequest card)
         {
-            var (isValid, message) = this.UpdateIsValid(card);         
+            var (isValid, message) = this.UpdateIsValid(card);
 
             if (isValid == false)
             {
@@ -88,23 +119,23 @@ namespace ProjectThreeAPI.Service
 
             var cardDb = await _daoDBcontext
                 .Cards
-                .Where(a => a.IsDeleted == false)
-                .FirstOrDefaultAsync(a => a.Id == card.Id);
+                .Where(a => a.Id == card.Id && a.IsDeleted == false)
+                .FirstOrDefaultAsync();
 
-          
+
             if (cardDb == null)
             {
                 return $"Card not found: {card.Name}";
-            }       
+            }
 
             cardDb.Name = card.Name;
             cardDb.Power = card.Power;
             cardDb.UpperHand = card.UpperHand;
             cardDb.Type = card.Type;
-            
-            await _daoDBcontext.SaveChangesAsync();          
 
-            return "Update successful";
+            await _daoDBcontext.SaveChangesAsync();
+
+            return "Update action successful";
         }
 
         private (bool, string) UpdateIsValid(CardUpdateAdminRequest card)
@@ -135,6 +166,31 @@ namespace ProjectThreeAPI.Service
             }
 
             return (true, String.Empty);
+        }
+
+        public async Task<string> Delete(CardDeleteAdminRequest card)
+        {
+            if (card.Id == null || card.Id <= 0)
+            {
+                return $"Error: Invalid Card ID, ID cannot be empty or equal/lesser than 0";
+            }
+
+            var exists = await this._daoDBcontext
+                .Cards
+                .Where(a => a.Id == card.Id && a.IsDeleted == false)
+                .AnyAsync();
+
+            if (exists == false)
+            {
+                return $"Error: Invalid Card ID, the card does not exist or is already deleted";
+            }
+
+            await this._daoDBcontext
+               .Cards
+               .Where(u => u.Id == card.Id)
+               .ExecuteUpdateAsync(b => b.SetProperty(u => u.IsDeleted, true));
+
+            return "Delete action successful";
         }
     }
 }
