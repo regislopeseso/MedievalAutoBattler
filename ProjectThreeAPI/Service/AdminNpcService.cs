@@ -2,7 +2,6 @@
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Models.Entities;
-using ProjectThreeAPI.Models.Enums;
 using ProjectThreeAPI.Utilities;
 
 namespace ProjectThreeAPI.Service
@@ -16,13 +15,13 @@ namespace ProjectThreeAPI.Service
             this._daoDbContext = daoDBcontext;
         }
 
-        public async Task<(NpcCreateAdminResponse, string)> Create(NpcCreateAdminRequest npc, List<int> cardIds)
+        public async Task<string> Create(AdminNpcCreateRequest npc)
         {
             var (isValid, message) = this.CreateIsValid(npc);
 
             if (isValid == false)
             {
-                return (null, message);
+                return  message;
             }
 
             var exists = await this._daoDbContext
@@ -31,39 +30,32 @@ namespace ProjectThreeAPI.Service
                 .AnyAsync();
             if (exists == true)
             {
-                return (null, $"Error: this NPC already exists - {npc.Name}");
+                return $"Error: this NPC already exists - {npc.Name}";
             }
 
-            var newHand = await this._daoDbContext
+            var ids = new int[] {1};
+
+            var cardIds = await this._daoDbContext
                 .Cards
-                .Where(a => cardIds.Contains(a.Id))
+                .Where(a => npc.Hand.Contains(a.Id))
                 .ToListAsync();
 
             var newNpc = new Npc
             {
                 Name = npc.Name,
                 Description = npc.Description,
-                Hand = newHand,
+                Hand = cardIds,
                 Level = Helper.GetNpcLevel(npc),
                 IsDeleted = false,
             };
 
             _daoDbContext.Add(newNpc);
 
-            await _daoDbContext.SaveChangesAsync();
+            await _daoDbContext.SaveChangesAsync();       
 
-            var result = new NpcCreateAdminResponse
-            {
-                Id = newNpc.Id,
-                Name = newNpc.Name,
-                Description = newNpc.Description,
-                Hand = newNpc.Hand,
-                Level = newNpc.Level,
-            };
-
-            return (result, "Create action successful");
+            return "Create action successful";
         }
-        public (bool, string) CreateIsValid(NpcCreateAdminRequest npc)
+        public (bool, string) CreateIsValid(AdminNpcCreateRequest npc)
         {
             if (npc == null)
             {

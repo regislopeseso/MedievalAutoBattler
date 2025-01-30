@@ -16,7 +16,6 @@ namespace ProjectThreeAPI.Models.Entities
         public int Level { get; set; }
         public CardType Type { get; set; }
         public bool IsDeleted { get; set; }
-        [InverseProperty("Hand")]
         public List<Npc> Npcs { get; set; }
     }
 }

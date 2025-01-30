@@ -2,10 +2,10 @@
 
 namespace ProjectThreeAPI.Models.Dtos.Request
 {
-    public class NpcCreateAdminRequest
+    public class AdminNpcCreateRequest
     {  
         public string Name { get; set; }
         public string Description { get; set; }
-        public List<Card> Hand { get; set; }
+        public List<int> Hand { get; set; }
     }
 }

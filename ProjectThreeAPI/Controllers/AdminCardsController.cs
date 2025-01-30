@@ -17,13 +17,12 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CardCreateAdminRequest card)
+        public async Task<IActionResult> Create(AdminCardCreateRequest card)
         {
-            var (result, message) = await _adminCardService.Create(card);
+            var message = await _adminCardService.Create(card);
 
-            var response = new Response<CardCreateAdminResponse>()
+            var response = new Response<string>
             {
-                Content = result,
                 Message = message
             };
 
@@ -44,7 +43,7 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(CardUpdateAdminRequest card)
+        public async Task<IActionResult> Update(AdminCardUpdateRequest card)
         {
             var message = await _adminCardService.Update(card);
 

@@ -3,7 +3,7 @@ using ProjectThreeAPI.Models.Enums;
 
 namespace ProjectThreeAPI.Models.Dtos.Request
 {
-    public class CardCreateAdminRequest
+    public class AdminCardCreateRequest
     {
         public string Name { get; set; }
         public int Power { get; set; }

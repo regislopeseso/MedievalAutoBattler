@@ -2,7 +2,7 @@
 
 namespace ProjectThreeAPI.Models.Dtos.Request
 {
-    public class CardUpdateAdminRequest
+    public class AdminCardUpdateRequest
     {
         public int Id { get; set; }
         public string Name {  get; set; }

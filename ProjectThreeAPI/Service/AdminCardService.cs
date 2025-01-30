@@ -16,13 +16,13 @@ namespace ProjectThreeAPI.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(CardCreateAdminResponse, string)> Create(CardCreateAdminRequest card)
+        public async Task<string> Create(AdminCardCreateRequest card)
         {
             var (isValid, message) = this.CreateIsValid(card);
 
             if (isValid == false)
             {
-                return (null, message);
+                return message;
             }
 
             var exists = await this._daoDbContext
@@ -31,7 +31,7 @@ namespace ProjectThreeAPI.Service
                 .AnyAsync();
             if (exists == true)
             {
-                return (null, $"Error: this card already exists - {card.Name}");
+                return $"Error: this card already exists - {card.Name}";
             }
 
             var newCard = new Card
@@ -46,20 +46,11 @@ namespace ProjectThreeAPI.Service
 
             _daoDbContext.Add(newCard);
 
-            await _daoDbContext.SaveChangesAsync();
+            await _daoDbContext.SaveChangesAsync();            
 
-            var result = new CardCreateAdminResponse
-            {
-                Id = newCard.Id,
-                Name = newCard.Name,
-                Power = newCard.Power,
-                UpperHand = newCard.UpperHand,
-                Type = newCard.Type,
-            };
-
-            return (result, "Create action successful");
+            return "Create action successful";
         }
-        public (bool, string) CreateIsValid(CardCreateAdminRequest card)
+        public (bool, string) CreateIsValid(AdminCardCreateRequest card)
         {
             if (card == null)
             {
@@ -107,7 +98,7 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync();
         }
 
-        public async Task<string> Update(CardUpdateAdminRequest card)
+        public async Task<string> Update(AdminCardUpdateRequest card)
         {
             var (isValid, message) = this.UpdateIsValid(card);
 
@@ -137,7 +128,7 @@ namespace ProjectThreeAPI.Service
             return "Update action successful";
         }
 
-        private (bool, string) UpdateIsValid(CardUpdateAdminRequest card)
+        private (bool, string) UpdateIsValid(AdminCardUpdateRequest card)
         {
             if (card == null)
             {
