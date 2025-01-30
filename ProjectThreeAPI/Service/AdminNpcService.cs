@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.OpenApi.Any;
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Models.Entities;
 using ProjectThreeAPI.Utilities;
+using System.Reflection.Emit;
+using static System.Net.WebRequestMethods;
 
 namespace ProjectThreeAPI.Service
 {
@@ -21,7 +25,7 @@ namespace ProjectThreeAPI.Service
 
             if (isValid == false)
             {
-                return  message;
+                return message;
             }
 
             var exists = await this._daoDbContext
@@ -33,25 +37,44 @@ namespace ProjectThreeAPI.Service
                 return $"Error: this NPC already exists - {npc.Name}";
             }
 
-            var ids = new int[] {1};
+            var cardsDB = await this._daoDbContext
+              .Cards
+              .Where(a => npc.Hand.Contains(a.Id))
+              .ToListAsync();
 
-            var cardIds = await this._daoDbContext
-                .Cards
-                .Where(a => npc.Hand.Contains(a.Id))
-                .ToListAsync();
+            foreach (var id in npc.Hand)
+            {
+                if (cardsDB.Select(a => a.Id).Contains(id) == false)
+                {
+                    return $"Error: card Id not found: {id}";
+                }
+            }
 
             var newNpc = new Npc
             {
                 Name = npc.Name,
                 Description = npc.Description,
-                Hand = cardIds,
-                Level = Helper.GetNpcLevel(npc),
-                IsDeleted = false,
-            };
+                Deck = new List<DeckEntry>(),
+                IsDeleted = false
+            };                 
+
+            foreach (var id in npc.Hand)
+            {
+                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                if (newCard != null)
+                {
+                    newNpc.Deck.Add(new DeckEntry()
+                    {
+                        Card = newCard
+                    });
+                }
+            }
+
+            newNpc.Level = Helper.GetNpcLevel(newNpc);
 
             _daoDbContext.Add(newNpc);
 
-            await _daoDbContext.SaveChangesAsync();       
+            await _daoDbContext.SaveChangesAsync();
 
             return "Create action successful";
         }
@@ -59,7 +82,7 @@ namespace ProjectThreeAPI.Service
         {
             if (npc == null)
             {
-                return (false, "No information was provided");
+                return (false, "The information was provided");
             }
 
             if (string.IsNullOrEmpty(npc.Name) == true)
@@ -69,34 +92,44 @@ namespace ProjectThreeAPI.Service
 
             if (string.IsNullOrEmpty(npc.Description) == true)
             {
-                return (false, "An NPC's description is mandatory");
+                return (false, "The NPC's description is mandatory");
             }
 
             if (npc.Hand.Count == null || npc.Hand.Count != 5)
             {
-                return (false, "An NPC's hand cannot be empty, it must have 5 cards");
+                return (false, "The NPC's hand can neither be empty nor contain fewer or more than 5 cards");
             }
 
             return (true, String.Empty);
         }
 
-        //public async Task<List<NpcReadAdminResponse>> Read()
-        //{
-        //    return await this._daoDbContext
-        //        .Npcs
-        //        .AsNoTracking()
-        //        .Where(a => a.IsDeleted == false)
-        //        .Select(a => new NpcReadAdminResponse
-        //        {
-        //            Id = a.Id,
-        //            Name = a.Name,
-        //            Power = a.Power,
-        //            UpperHand = a.UpperHand,
-        //            Level = a.Level,
-        //            Type = a.Type,
-        //        })
-        //        .ToListAsync();
-        //}
+        public async Task<List<AdminNpcReadResponse>> Read()
+        {
+            return await this._daoDbContext
+                .Npcs
+                .AsNoTracking()
+                .Where(a => a.IsDeleted == false)
+                .Select(a => new AdminNpcReadResponse
+                {
+                    Name = a.Name,
+                    Description = a.Description,
+                    Hand = a.Deck
+                            .Select(b =>
+                            new HandOfCardsResponse
+                            {
+                                Name = b.Card.Name,
+                                Power = b.Card.Power,
+                                UpperHand = b.Card.UpperHand,
+                                Level = b.Card.Level,
+                                Type = b.Card.Type,
+                            })
+                            .ToList(),
+                    Level = a.Level
+                })
+                .OrderBy(a => a.Level)
+                .ThenBy(a => a.Name)
+                .ToListAsync();
+        }
 
         //public async Task<string> Update(NpcUpdateAdminRequest npc)
         //{

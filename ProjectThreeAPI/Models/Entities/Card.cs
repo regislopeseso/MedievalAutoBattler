@@ -16,6 +16,5 @@ namespace ProjectThreeAPI.Models.Entities
         public int Level { get; set; }
         public CardType Type { get; set; }
         public bool IsDeleted { get; set; }
-        public List<Npc> Npcs { get; set; }
     }
 }

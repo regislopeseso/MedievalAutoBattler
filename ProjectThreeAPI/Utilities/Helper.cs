@@ -10,10 +10,17 @@ namespace ProjectThreeAPI.Utilities
             return (int)Math.Ceiling((double)(card.Power + card.UpperHand) / 2);
         }
 
-        public static int GetNpcLevel(AdminNpcCreateRequest npc) 
+        public static int GetNpcLevel(Npc npc)
         {
-            //return (int)Math.Ceiling((double)(npc.Hand.Select(a => a.Level).Sum()) / 2);
-            return 1;
+            var cards = npc.Deck.Select(x => x.Card).ToList();
+            var levelSum = cards.Sum(x => x.Level);
+
+            if (levelSum == 0 || cards.Count == 0)
+            {
+                return 0;   
+            }
+
+            return (int)Math.Ceiling((double)(levelSum / cards.Count));
         }
     }
 }

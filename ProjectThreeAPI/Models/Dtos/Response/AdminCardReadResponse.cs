@@ -2,9 +2,8 @@
 
 namespace ProjectThreeAPI.Models.Dtos.Response
 {
-    public class CardReadAdminResponse
-    {
-        public int Id { get; set; }
+    public class AdminCardReadResponse
+    { 
         public string Name { get; set; }
         public int Power { get; set; }
         public int UpperHand {  get; set; }

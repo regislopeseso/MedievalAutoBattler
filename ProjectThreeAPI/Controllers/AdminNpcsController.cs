@@ -29,18 +29,18 @@ namespace ProjectThreeAPI.Controllers
             return new JsonResult(response);
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Read()
-        //{
-        //    var npcs = await _adminNpcService.Read();
+        [HttpGet]
+        public async Task<IActionResult> Read()
+        {
+            var npcs = await _adminNpcService.Read();
 
-        //    var response = new Response<List<NpcReadAdminResponse>>()
-        //    {
-        //        Content = npcs,
-        //    };
+            var response = new Response<List<AdminNpcReadResponse>>()
+            {
+                Content = npcs,
+            };
 
-        //    return new JsonResult(response);
-        //}
+            return new JsonResult(response);
+        }
 
         //[HttpPut]
         //public async Task<IActionResult> Update(NpcUpdateAdminRequest npc)

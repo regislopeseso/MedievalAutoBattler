@@ -80,21 +80,22 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<List<CardReadAdminResponse>> Read()
+        public async Task<List<AdminCardReadResponse>> Read()
         {
             return await this._daoDbContext
                 .Cards
                 .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
-                .Select(a => new CardReadAdminResponse
+                .Select(a => new AdminCardReadResponse
                 {
-                    Id = a.Id,
                     Name = a.Name,
                     Power = a.Power,
                     UpperHand = a.UpperHand,
                     Level = a.Level,
                     Type = a.Type,
                 })
+                .OrderBy(a => a.Level)
+                .ThenBy(a => a.Name)
                 .ToListAsync();
         }
 

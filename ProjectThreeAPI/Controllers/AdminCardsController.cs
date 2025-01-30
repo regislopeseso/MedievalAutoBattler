@@ -34,7 +34,7 @@ namespace ProjectThreeAPI.Controllers
         {
             var cards = await _adminCardService.Read();
 
-            var response = new Response<List<CardReadAdminResponse>>()
+            var response = new Response<List<AdminCardReadResponse>>()
             {
                 Content = cards,
             };
@@ -67,8 +67,5 @@ namespace ProjectThreeAPI.Controllers
 
             return new JsonResult(response);
         }
-
-
-
     }
 }
