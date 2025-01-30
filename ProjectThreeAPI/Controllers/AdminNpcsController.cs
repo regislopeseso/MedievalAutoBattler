@@ -17,9 +17,9 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(NpcCreateAdminRequest npc)
+        public async Task<IActionResult> Create(NpcCreateAdminRequest npc, List<int> cardIds)
         {
-            var (result, message) = await _adminNpcService.Create(npc);
+            var (result, message) = await _adminNpcService.Create(npc, cardIds);
 
             var response = new Response<NpcCreateAdminResponse>()
             {

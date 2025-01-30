@@ -16,13 +16,13 @@ namespace ProjectThreeAPI.Service
             this._daoDbContext = daoDBcontext;
         }
 
-        public async Task<(NpcCreateAdminResponse,string)> Create(NpcCreateAdminRequest npc)
+        public async Task<(NpcCreateAdminResponse, string)> Create(NpcCreateAdminRequest npc, List<int> cardIds)
         {
             var (isValid, message) = this.CreateIsValid(npc);
 
             if (isValid == false)
             {
-                return (null,message);
+                return (null, message);
             }
 
             var exists = await this._daoDbContext
@@ -31,14 +31,19 @@ namespace ProjectThreeAPI.Service
                 .AnyAsync();
             if (exists == true)
             {
-                return (null,$"Error: this NPC already exists - {npc.Name}");
+                return (null, $"Error: this NPC already exists - {npc.Name}");
             }
+
+            var newHand = await this._daoDbContext
+                .Cards
+                .Where(a => cardIds.Contains(a.Id))
+                .ToListAsync();
 
             var newNpc = new Npc
             {
                 Name = npc.Name,
                 Description = npc.Description,
-                Hand = npc.Hand,
+                Hand = newHand,
                 Level = Helper.GetNpcLevel(npc),
                 IsDeleted = false,
             };
@@ -56,7 +61,7 @@ namespace ProjectThreeAPI.Service
                 Level = newNpc.Level,
             };
 
-            return (result,"Create action successful");
+            return (result, "Create action successful");
         }
         public (bool, string) CreateIsValid(NpcCreateAdminRequest npc)
         {
