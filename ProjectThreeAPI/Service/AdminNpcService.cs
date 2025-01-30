@@ -39,10 +39,10 @@ namespace ProjectThreeAPI.Service
 
             var cardsDB = await this._daoDbContext
               .Cards
-              .Where(a => npc.Hand.Contains(a.Id))
+              .Where(a => npc.Deck.Contains(a.Id))
               .ToListAsync();
 
-            foreach (var id in npc.Hand)
+            foreach (var id in npc.Deck)
             {
                 if (cardsDB.Select(a => a.Id).Contains(id) == false)
                 {
@@ -58,7 +58,7 @@ namespace ProjectThreeAPI.Service
                 IsDeleted = false
             };                 
 
-            foreach (var id in npc.Hand)
+            foreach (var id in npc.Deck)
             {
                 var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
                 if (newCard != null)
@@ -95,7 +95,7 @@ namespace ProjectThreeAPI.Service
                 return (false, "The NPC's description is mandatory");
             }
 
-            if (npc.Hand.Count == null || npc.Hand.Count != 5)
+            if (npc.Deck.Count == null || npc.Deck.Count != 5)
             {
                 return (false, "The NPC's hand can neither be empty nor contain fewer or more than 5 cards");
             }
@@ -131,89 +131,112 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync();
         }
 
-        //public async Task<string> Update(NpcUpdateAdminRequest npc)
-        //{
-        //    var (isValid, message) = this.UpdateIsValid(npc);
+        public async Task<string> Update(AdminNpcUpdateRequest npc)
+        {
+            var (isValid, message) = this.UpdateIsValid(npc);
 
-        //    if (isValid == false)
-        //    {
-        //        return message;
-        //    }
+            if (isValid == false)
+            {
+                return message;
+            }
 
-        //    var npcDb = await _daoDbContext
-        //        .Npcs
-        //        .Where(a => a.Id == npc.Id && a.IsDeleted == false)
-        //        .FirstOrDefaultAsync();
+            var npcDb = await _daoDbContext
+                .Npcs
+                .Where(a => a.Id == npc.Id && a.IsDeleted == false)
+                .FirstOrDefaultAsync();
 
+            if (npcDb == null)
+            {
+                return $"Npc not found: {npc.Name}";
+            }
 
-        //    if (npcDb == null)
-        //    {
-        //        return $"Npc not found: {npc.Name}";
-        //    }
+            var cardsDB = await this._daoDbContext
+              .Cards
+              .Where(a => npc.Deck.Contains(a.Id))
+              .ToListAsync();
 
-        //    npcDb.Name = npc.Name;
-        //    npcDb.Power = npc.Power;
-        //    npcDb.UpperHand = npc.UpperHand;
-        //    npcDb.Type = npc.Type;
+            foreach (var id in npc.Deck)
+            {
+                if (cardsDB.Select(a => a.Id).Contains(id) == false)
+                {
+                    return $"Error: card Id not found: {id}";
+                }
+            }
 
-        //    await _daoDbContext.SaveChangesAsync();
+            npcDb.Name = npc.Name;
+            npcDb.Description = npc.Description;
+            npcDb.Deck = new List<DeckEntry>();
 
-        //    return "Update action successful";
-        //}
+            foreach (var id in npc.Deck)
+            {
+                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                if (newCard != null)
+                {
+                    npcDb.Deck.Add(new DeckEntry()
+                    {
+                        Card = newCard
+                    });
+                }
+            }
 
-        //private (bool, string) UpdateIsValid(NpcUpdateAdminRequest npc)
-        //{
-        //    if (npc == null)
-        //    {
-        //        return (false, "No information provided");
-        //    }
+            await _daoDbContext.SaveChangesAsync();
 
-        //    if (string.IsNullOrEmpty(npc.Name) == true)
-        //    {
-        //        return (false, "Npcs name is mandatory");
-        //    }
+            return "Update action successful";
+        }
 
-        //    if (npc.Power == null || npc.Power < 0 || npc.Power > 9)
-        //    {
-        //        return (false, "Npcs power must be between 0 and 9");
-        //    }
+        private (bool, string) UpdateIsValid(AdminNpcUpdateRequest npc)
+        {
+            if (npc == null)
+            {
+                return (false, "No information provided");
+            }
 
-        //    if (npc.UpperHand == null || npc.UpperHand < 0 || npc.UpperHand > 9)
-        //    {
-        //        return (false, "Npcs upper hand must be between 0 and 9");
-        //    }
+            if (npc == null)
+            {
+                return (false, "The information was provided");
+            }
 
-        //    if (Enum.IsDefined(typeof(NpcType), npc.Type) == false)
-        //    {
-        //        return (false, "Invalid npc type. Type must be None (0), Archer (1), Calvary (2), or Spearman (3).");
-        //    }
+            if (string.IsNullOrEmpty(npc.Name) == true)
+            {
+                return (false, "An NPC's name is mandatory");
+            }
 
-        //    return (true, String.Empty);
-        //}
+            if (string.IsNullOrEmpty(npc.Description) == true)
+            {
+                return (false, "The NPC's description is mandatory");
+            }
 
-        //public async Task<string> Delete(int id)
-        //{
-        //    if (id == null || id <= 0)
-        //    {
-        //        return $"Error: Invalid Npc ID, ID cannot be empty or equal/lesser than 0";
-        //    }
+            if (npc.Deck.Count == null || npc.Deck.Count != 5)
+            {
+                return (false, "The NPC's hand can neither be empty nor contain fewer or more than 5 cards");
+            }
 
-        //    var exists = await this._daoDbContext
-        //        .Npcs
-        //        .Where(a => a.Id == id && a.IsDeleted == false)
-        //        .AnyAsync();
+            return (true, String.Empty);
+        }
 
-        //    if (exists == false)
-        //    {
-        //        return $"Error: Invalid Npc ID, the npc does not exist or is already deleted";
-        //    }
+        public async Task<string> Delete(int id)
+        {
+            if (id == null || id <= 0)
+            {
+                return $"Error: Invalid Npc ID, ID cannot be empty or equal/lesser than 0";
+            }
 
-        //    await this._daoDbContext
-        //       .Npcs
-        //       .Where(u => u.Id == id)
-        //       .ExecuteUpdateAsync(b => b.SetProperty(u => u.IsDeleted, true));
+            var exists = await this._daoDbContext
+                .Npcs
+                .Where(a => a.Id == id && a.IsDeleted == false)
+                .AnyAsync();
 
-        //    return "Delete action successful";
-        //}
+            if (exists == false)
+            {
+                return $"Error: Invalid Npc ID, the npc does not exist or is already deleted";
+            }
+
+            await this._daoDbContext
+               .Npcs
+               .Where(a => a.Id == id)
+               .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            return "Delete action successful";
+        }
     }
 }

@@ -42,30 +42,30 @@ namespace ProjectThreeAPI.Controllers
             return new JsonResult(response);
         }
 
-        //[HttpPut]
-        //public async Task<IActionResult> Update(NpcUpdateAdminRequest npc)
-        //{
-        //    var message = await _adminNpcService.Update(npc);
+        [HttpPut]
+        public async Task<IActionResult> Update(AdminNpcUpdateRequest npc)
+        {
+            var message = await _adminNpcService.Update(npc);
 
-        //    var response = new Response<string>()
-        //    {
-        //        Message = message
-        //    };
+            var response = new Response<string>()
+            {
+                Message = message
+            };
 
-        //    return new JsonResult(response);
-        //}
+            return new JsonResult(response);
+        }
 
-        //[HttpDelete]
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    var message = await _adminNpcService.Delete(id);
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var message = await _adminNpcService.Delete(id);
 
-        //    var response = new Response<string>()
-        //    {
-        //        Message = message
-        //    };
+            var response = new Response<string>()
+            {
+                Message = message
+            };
 
-        //    return new JsonResult(response);
-        //}
+            return new JsonResult(response);
+        }
     }
 }
