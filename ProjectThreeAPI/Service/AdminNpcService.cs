@@ -111,6 +111,7 @@ namespace ProjectThreeAPI.Service
                 .Where(a => a.IsDeleted == false)
                 .Select(a => new AdminNpcReadResponse
                 {
+                    Id = a.Id,
                     Name = a.Name,
                     Description = a.Description,
                     Hand = a.Deck

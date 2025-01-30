@@ -88,6 +88,7 @@ namespace ProjectThreeAPI.Service
                 .Where(a => a.IsDeleted == false)
                 .Select(a => new AdminCardReadResponse
                 {
+                    Id = a.Id,
                     Name = a.Name,
                     Power = a.Power,
                     UpperHand = a.UpperHand,
