@@ -49,6 +49,10 @@ namespace ProjectThreeAPI.Service
             newNpc.Deck = await GetNewDeck(npc.Deck);
 
             newNpc.Level = Helper.GetNpcLevel(newNpc);
+            if (newNpc.Deck == null || newNpc.Deck.Count == 0)
+            {
+                return "Error: One or more CardIds invalid";
+            }
 
             _daoDbContext.Add(newNpc);
 
@@ -75,7 +79,7 @@ namespace ProjectThreeAPI.Service
 
             if (npc.Deck.Count == null || npc.Deck.Count != 5)
             {
-                return (false, "The NPC's hand can neither be empty nor contain fewer or more than 5 cards");
+                return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
 
             return (true, String.Empty);
@@ -92,10 +96,11 @@ namespace ProjectThreeAPI.Service
                     Id = a.Id,
                     Name = a.Name,
                     Description = a.Description,
-                    Hand = a.Deck
+                    Deck = a.Deck
                             .Select(b =>
-                            new HandOfCardsResponse
+                            new AdminNpcReadResponse_Deck
                             {
+                                Id = b.Id,
                                 Name = b.Card.Name,
                                 Power = b.Card.Power,
                                 UpperHand = b.Card.UpperHand,
@@ -186,7 +191,7 @@ namespace ProjectThreeAPI.Service
 
             if (npc.DeckChanges != null && npc.DeckChanges.Count > 5)
             {
-                return (false, "The NPC's hand cannot contain more than 5 cards");
+                return (false, "The NPC's deck cannot contain more than 5 cards");
             }
 
             return (true, String.Empty);
@@ -206,32 +211,27 @@ namespace ProjectThreeAPI.Service
                 .Include(a => a.Deck)
                 .ThenInclude(b => b.Card)
                 .Where(a => a.Id == npc.Id && a.IsDeleted == false)
-                .FirstOrDefaultAsync();
-
-            var oldCardIds = npcDB.Deck.Select(a => a.Id).ToList();
+                .FirstOrDefaultAsync();            
 
             if (npcDB == null)
             {
                 return $"Npc not found: {npc.Name}";
             }
 
-            var availableCardIds = _daoDbContext.Cards.Select(a => a.Id).ToList();
+            var availableCardIds = _daoDbContext.Cards.Where(a => a.IsDeleted == false).Select(a => a.Id).ToList();
             if (npc.CardIds.All(id => availableCardIds.Contains(id))
                 == false)
             {
-                return "Error: the cardId provided leads to a non-existing card";
+                return "Error: the cardId or cardIds provided lead to non-existing cards";
             }
+
+            var oldCardIds = npcDB.Deck.Select(a => a.Id).ToList();
+            await this._daoDbContext.DeckEntries
+                              .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
+                              .ExecuteDeleteAsync();
 
             npcDB.Name = npc.Name;
             npcDB.Description = npc.Description;
-            npcDB.Deck = new List<DeckEntry>();
-
-            
-            await this._daoDbContext.DeckEntries
-                              .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
-                              .ExecuteDeleteAsync();          
-
-
             npcDB.Deck = await GetNewDeck(npc.CardIds);
 
 
@@ -264,13 +264,17 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-
         private async Task<List<DeckEntry>> GetNewDeck(List<int> cardsId)
         {
             var cardsDB = await this._daoDbContext
               .Cards
-              .Where(a => cardsId.Contains(a.Id))
+              .Where(a => cardsId.Contains(a.Id) && a.IsDeleted == false)
               .ToListAsync();
+
+            if (cardsDB == null || cardsDB.Count == 0)
+            {
+                return null;
+            }
 
             foreach (var id in cardsId)
             {
