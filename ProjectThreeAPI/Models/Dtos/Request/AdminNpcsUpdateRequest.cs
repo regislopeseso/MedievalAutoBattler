@@ -2,10 +2,11 @@
 
 namespace ProjectThreeAPI.Models.Dtos.Request
 {
-    public class AdminNpcCreateRequest
-    {  
+    public class AdminNpcsUpdateRequest
+    {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public List<int> Deck { get; set; }
+        public List<int> CardIds { get; set; }     //<old ids, new ids>
     }
 }

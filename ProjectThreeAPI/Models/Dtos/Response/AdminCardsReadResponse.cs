@@ -2,7 +2,7 @@
 
 namespace ProjectThreeAPI.Models.Dtos.Response
 {
-    public class AdminCardReadResponse
+    public class AdminCardsReadResponse
     { 
         public int Id { get; set; } 
         public string Name { get; set; }

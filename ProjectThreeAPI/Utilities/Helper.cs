@@ -5,7 +5,7 @@ namespace ProjectThreeAPI.Utilities
 {
     public static class Helper
     {
-        public static int GetCardLevel(AdminCardCreateRequest card)
+        public static int GetCardLevel(AdminCardsCreateRequest card)
         {
             return (int)Math.Ceiling((double)(card.Power + card.UpperHand) / 2);
         }

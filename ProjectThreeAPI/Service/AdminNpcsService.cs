@@ -12,16 +12,16 @@ using static System.Net.WebRequestMethods;
 
 namespace ProjectThreeAPI.Service
 {
-    public class AdminNpcService
+    public class AdminNpcsService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public AdminNpcService(ApplicationDbContext daoDBcontext)
+        public AdminNpcsService(ApplicationDbContext daoDBcontext)
         {
             this._daoDbContext = daoDBcontext;
         }
 
-        public async Task<string> Create(AdminNpcCreateRequest npc)
+        public async Task<string> Create(AdminNpcsCreateRequest npc)
         {
             var (isValid, message) = this.CreateIsValid(npc);
             if (isValid == false)
@@ -60,7 +60,7 @@ namespace ProjectThreeAPI.Service
 
             return "Create action successful";
         }
-        public (bool, string) CreateIsValid(AdminNpcCreateRequest npc)
+        public (bool, string) CreateIsValid(AdminNpcsCreateRequest npc)
         {
             if (npc == null)
             {
@@ -85,13 +85,13 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<(List<AdminNpcReadResponse>, string)> Read()
+        public async Task<(List<AdminNpcsReadResponse>, string)> Read()
         {
             return (await this._daoDbContext
                 .Npcs
                 .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
-                .Select(a => new AdminNpcReadResponse
+                .Select(a => new AdminNpcsReadResponse
                 {
                     Id = a.Id,
                     Name = a.Name,
@@ -115,7 +115,7 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync(), "Read Successful");
         }
 
-        public async Task<string> FlexUpdate(AdminNpcFlexUpdateRequest npc)
+        public async Task<string> FlexUpdate(AdminNpcsFlexUpdateRequest npc)
         {
             var (isValid, message) = this.FlexUpdateIsValid(npc);
             if (isValid == false)
@@ -182,7 +182,7 @@ namespace ProjectThreeAPI.Service
 
             return "Update action successful";
         }
-        private (bool, string) FlexUpdateIsValid(AdminNpcFlexUpdateRequest npc)
+        private (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest npc)
         {
             if (npc == null)
             {
@@ -197,7 +197,7 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<string> Update(AdminNpcUpdateRequest npc)
+        public async Task<string> Update(AdminNpcsUpdateRequest npc)
         {
             var (isValid, message) = this.UpdateIsValid(npc);
 
@@ -239,7 +239,7 @@ namespace ProjectThreeAPI.Service
 
             return "Update action successful";
         }
-        private (bool, string) UpdateIsValid(AdminNpcUpdateRequest npc)
+        private (bool, string) UpdateIsValid(AdminNpcsUpdateRequest npc)
         {
             if (npc == null)
             {

@@ -7,16 +7,16 @@ using ProjectThreeAPI.Utilities;
 
 namespace ProjectThreeAPI.Service
 {
-    public class AdminCardService
+    public class AdminCardsService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public AdminCardService(ApplicationDbContext daoDbContext)
+        public AdminCardsService(ApplicationDbContext daoDbContext)
         {
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<string> Create(AdminCardCreateRequest card)
+        public async Task<string> Create(AdminCardsCreateRequest card)
         {
             var (isValid, message) = this.CreateIsValid(card);
 
@@ -50,7 +50,7 @@ namespace ProjectThreeAPI.Service
 
             return "Create action successful";
         }
-        public (bool, string) CreateIsValid(AdminCardCreateRequest card)
+        public (bool, string) CreateIsValid(AdminCardsCreateRequest card)
         {
             if (card == null)
             {
@@ -80,13 +80,13 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<(List<AdminCardReadResponse>,string)> Read()
+        public async Task<(List<AdminCardsReadResponse>,string)> Read()
         {
             return (await this._daoDbContext
                 .Cards
                 .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
-                .Select(a => new AdminCardReadResponse
+                .Select(a => new AdminCardsReadResponse
                 {
                     Id = a.Id,
                     Name = a.Name,
@@ -100,7 +100,7 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync(), "Read successful");
         }
 
-        public async Task<string> Update(AdminCardUpdateRequest card)
+        public async Task<string> Update(AdminCardsUpdateRequest card)
         {
             var (isValid, message) = this.UpdateIsValid(card);
 
@@ -130,7 +130,7 @@ namespace ProjectThreeAPI.Service
             return "Update action successful";
         }
 
-        private (bool, string) UpdateIsValid(AdminCardUpdateRequest card)
+        private (bool, string) UpdateIsValid(AdminCardsUpdateRequest card)
         {
             if (card == null)
             {

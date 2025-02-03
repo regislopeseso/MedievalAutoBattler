@@ -9,15 +9,15 @@ namespace ProjectThreeAPI.Controllers
     [Route("admin/cards/[action]")]
     public class AdminCardsController : ControllerBase
     {
-        private readonly AdminCardService _adminCardService;
+        private readonly AdminCardsService _adminCardService;
 
-        public AdminCardsController(AdminCardService adminCardService)
+        public AdminCardsController(AdminCardsService adminCardService)
         {
             this._adminCardService = adminCardService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(AdminCardCreateRequest card)
+        public async Task<IActionResult> Create(AdminCardsCreateRequest card)
         {
             var message = await _adminCardService.Create(card);
 
@@ -34,7 +34,7 @@ namespace ProjectThreeAPI.Controllers
         {
             var (response, message) = await _adminCardService.Read();
 
-            var result = new Response<List<AdminCardReadResponse>>()
+            var result = new Response<List<AdminCardsReadResponse>>()
             {
                 Content = response,
                 Message = message
@@ -44,7 +44,7 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(AdminCardUpdateRequest card)
+        public async Task<IActionResult> Update(AdminCardsUpdateRequest card)
         {
             var message = await _adminCardService.Update(card);
 

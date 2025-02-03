@@ -9,15 +9,15 @@ namespace ProjectThreeAPI.Controllers
     [Route("admin/npcs/[action]")]
     public class AdminNpcsController : ControllerBase
     {
-        private readonly AdminNpcService _adminNpcService;
+        private readonly AdminNpcsService _adminNpcService;
 
-        public AdminNpcsController(AdminNpcService adminNpcService)
+        public AdminNpcsController(AdminNpcsService adminNpcService)
         {
             this._adminNpcService = adminNpcService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(AdminNpcCreateRequest npc)
+        public async Task<IActionResult> Create(AdminNpcsCreateRequest npc)
         {
             var message = await _adminNpcService.Create(npc);
 
@@ -34,7 +34,7 @@ namespace ProjectThreeAPI.Controllers
         {
             var (response, message) = await _adminNpcService.Read();
 
-            var result = new Response<List<AdminNpcReadResponse>>()
+            var result = new Response<List<AdminNpcsReadResponse>>()
             {
                 Content = response,
                 Message = message
@@ -44,7 +44,7 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(AdminNpcUpdateRequest npc)
+        public async Task<IActionResult> Update(AdminNpcsUpdateRequest npc)
         {
             var message = await _adminNpcService.Update(npc);
 
