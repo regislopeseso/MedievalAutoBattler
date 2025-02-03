@@ -6,6 +6,7 @@ using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Models.Entities;
 using ProjectThreeAPI.Utilities;
+using System.Linq;
 using System.Reflection.Emit;
 using static System.Net.WebRequestMethods;
 
@@ -109,9 +110,9 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync(), "Read Successful");
         }
 
-        public async Task<string> Update(AdminNpcUpdateRequest npc)
+        public async Task<string> FlexUpdate(AdminNpcFlexUpdateRequest npc)
         {
-            var (isValid, message) = this.UpdateIsValid(npc);
+            var (isValid, message) = this.FlexUpdateIsValid(npc);
             if (isValid == false)
             {
                 return message;
@@ -138,14 +139,14 @@ namespace ProjectThreeAPI.Service
                 npcDB.Description = npc.Description;
             }
 
-            
+
 
             if (npc.DeckChanges != null && npc.DeckChanges.Count != 0)
             {
                 if (npcDB.Deck.Count == 0)
                 {
                     return "Error: NPC deck is empty.";
-                }                               
+                }
 
                 var oldIds = npcDB.Deck.Select(a => a.Card.Id).ToList();
                 if (npc.DeckChanges.Keys.All(id => oldIds.Contains(id))
@@ -176,8 +177,7 @@ namespace ProjectThreeAPI.Service
 
             return "Update action successful";
         }
-
-        private (bool, string) UpdateIsValid(AdminNpcUpdateRequest npc)
+        private (bool, string) FlexUpdateIsValid(AdminNpcFlexUpdateRequest npc)
         {
             if (npc == null)
             {
@@ -191,6 +191,79 @@ namespace ProjectThreeAPI.Service
 
             return (true, String.Empty);
         }
+
+        public async Task<string> Update(AdminNpcUpdateRequest npc)
+        {
+            var (isValid, message) = this.UpdateIsValid(npc);
+
+            if (isValid == false)
+            {
+                return message;
+            }
+
+            var npcDB = await _daoDbContext
+                .Npcs
+                .Include(a => a.Deck)
+                .ThenInclude(b => b.Card)
+                .Where(a => a.Id == npc.Id && a.IsDeleted == false)
+                .FirstOrDefaultAsync();
+
+            var oldCardIds = npcDB.Deck.Select(a => a.Id).ToList();
+
+            if (npcDB == null)
+            {
+                return $"Npc not found: {npc.Name}";
+            }
+
+            var availableCardIds = _daoDbContext.Cards.Select(a => a.Id).ToList();
+            if (npc.CardIds.All(id => availableCardIds.Contains(id))
+                == false)
+            {
+                return "Error: the cardId provided leads to a non-existing card";
+            }
+
+            npcDB.Name = npc.Name;
+            npcDB.Description = npc.Description;
+            npcDB.Deck = new List<DeckEntry>();
+
+            
+            await this._daoDbContext.DeckEntries
+                              .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
+                              .ExecuteDeleteAsync();          
+
+
+            npcDB.Deck = await GetNewDeck(npc.CardIds);
+
+
+            await _daoDbContext.SaveChangesAsync();
+
+            return "Update action successful";
+        }
+        private (bool, string) UpdateIsValid(AdminNpcUpdateRequest npc)
+        {
+            if (npc == null)
+            {
+                return (false, "The information was provided");
+            }
+
+            if (string.IsNullOrEmpty(npc.Name) == true)
+            {
+                return (false, "An NPC's name is mandatory");
+            }
+
+            if (string.IsNullOrEmpty(npc.Description) == true)
+            {
+                return (false, "The NPC's description is mandatory");
+            }
+
+            if (npc.CardIds == null || npc.CardIds.Count == 0 || npc.CardIds.Count != 5)
+            {
+                return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+            }
+
+            return (true, String.Empty);
+        }
+
 
         private async Task<List<DeckEntry>> GetNewDeck(List<int> cardsId)
         {

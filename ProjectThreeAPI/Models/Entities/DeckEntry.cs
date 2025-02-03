@@ -10,9 +10,12 @@ namespace ProjectThreeAPI.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [ForeignKey("Card")]
-        public int? CardId { get; set; }
+        public int CardId { get; set; }
         public Card Card { get; set; }      
         public bool IsDeleted { get; set; }
+
+        [ForeignKey("Npc")]
+        public int NpcId { get; set; }
         [InverseProperty("Deck")]
         public Npc Npc { get; set; }
     }
