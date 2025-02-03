@@ -32,14 +32,15 @@ namespace ProjectThreeAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Read()
         {
-            var cards = await _adminCardService.Read();
+            var (response, message) = await _adminCardService.Read();
 
-            var response = new Response<List<AdminCardReadResponse>>()
+            var result = new Response<List<AdminCardReadResponse>>()
             {
-                Content = cards,
+                Content = response,
+                Message = message
             };
 
-            return new JsonResult(response);
+            return new JsonResult(result);
         }
 
         [HttpPut]

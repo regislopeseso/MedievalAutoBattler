@@ -3,14 +3,13 @@ using ProjectThreeAPI.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<AdminCardService>();
-builder.Services.AddScoped<AdminNpcService>();
-
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddScoped<AdminCardService>();
+builder.Services.AddScoped<AdminNpcService>();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseMySql(

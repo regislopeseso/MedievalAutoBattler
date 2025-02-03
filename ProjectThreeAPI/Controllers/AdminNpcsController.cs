@@ -32,14 +32,15 @@ namespace ProjectThreeAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Read()
         {
-            var npcs = await _adminNpcService.Read();
+            var (response, message) = await _adminNpcService.Read();
 
-            var response = new Response<List<AdminNpcReadResponse>>()
+            var result = new Response<List<AdminNpcReadResponse>>()
             {
-                Content = npcs,
+                Content = response,
+                Message = message
             };
 
-            return new JsonResult(response);
+            return new JsonResult(result);
         }
 
         [HttpPut]

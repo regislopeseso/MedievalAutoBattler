@@ -80,9 +80,9 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<List<AdminCardReadResponse>> Read()
+        public async Task<(List<AdminCardReadResponse>,string)> Read()
         {
-            return await this._daoDbContext
+            return (await this._daoDbContext
                 .Cards
                 .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
@@ -95,9 +95,9 @@ namespace ProjectThreeAPI.Service
                     Level = a.Level,
                     Type = a.Type,
                 })
-                .OrderBy(a => a.Level)
+                .OrderBy(a => a.Id)
                 .ThenBy(a => a.Name)
-                .ToListAsync();
+                .ToListAsync(), "Read successful");
         }
 
         public async Task<string> Update(AdminCardUpdateRequest card)

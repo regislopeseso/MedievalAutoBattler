@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.OpenApi.Any;
 using ProjectThreeAPI.Models.Dtos.Request;
@@ -22,7 +23,6 @@ namespace ProjectThreeAPI.Service
         public async Task<string> Create(AdminNpcCreateRequest npc)
         {
             var (isValid, message) = this.CreateIsValid(npc);
-
             if (isValid == false)
             {
                 return message;
@@ -37,38 +37,15 @@ namespace ProjectThreeAPI.Service
                 return $"Error: this NPC already exists - {npc.Name}";
             }
 
-            var cardsDB = await this._daoDbContext
-              .Cards
-              .Where(a => npc.Deck.Contains(a.Id))
-              .ToListAsync();
-
-            foreach (var id in npc.Deck)
-            {
-                if (cardsDB.Select(a => a.Id).Contains(id) == false)
-                {
-                    return $"Error: card Id not found: {id}";
-                }
-            }
-
             var newNpc = new Npc
             {
                 Name = npc.Name,
                 Description = npc.Description,
                 Deck = new List<DeckEntry>(),
                 IsDeleted = false
-            };                 
+            };
 
-            foreach (var id in npc.Deck)
-            {
-                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
-                if (newCard != null)
-                {
-                    newNpc.Deck.Add(new DeckEntry()
-                    {
-                        Card = newCard
-                    });
-                }
-            }
+            newNpc.Deck = await GetNewDeck(npc.Deck);
 
             newNpc.Level = Helper.GetNpcLevel(newNpc);
 
@@ -103,9 +80,9 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<List<AdminNpcReadResponse>> Read()
+        public async Task<(List<AdminNpcReadResponse>, string)> Read()
         {
-            return await this._daoDbContext
+            return (await this._daoDbContext
                 .Npcs
                 .AsNoTracking()
                 .Where(a => a.IsDeleted == false)
@@ -129,54 +106,69 @@ namespace ProjectThreeAPI.Service
                 })
                 .OrderBy(a => a.Level)
                 .ThenBy(a => a.Name)
-                .ToListAsync();
+                .ToListAsync(), "Read Successful");
         }
 
         public async Task<string> Update(AdminNpcUpdateRequest npc)
         {
             var (isValid, message) = this.UpdateIsValid(npc);
-
             if (isValid == false)
             {
                 return message;
             }
 
-            var npcDb = await _daoDbContext
+            var npcDB = await _daoDbContext
                 .Npcs
+                .Include(a => a.Deck)
+                .ThenInclude(a => a.Card)
                 .Where(a => a.Id == npc.Id && a.IsDeleted == false)
                 .FirstOrDefaultAsync();
-
-            if (npcDb == null)
+            if (npcDB == null)
             {
                 return $"Npc not found: {npc.Name}";
             }
 
-            var cardsDB = await this._daoDbContext
-              .Cards
-              .Where(a => npc.Deck.Contains(a.Id))
-              .ToListAsync();
-
-            foreach (var id in npc.Deck)
+            if (string.IsNullOrEmpty(npc.Name) == false)
             {
-                if (cardsDB.Select(a => a.Id).Contains(id) == false)
-                {
-                    return $"Error: card Id not found: {id}";
-                }
+                npcDB.Name = npc.Name;
             }
 
-            npcDb.Name = npc.Name;
-            npcDb.Description = npc.Description;
-            npcDb.Deck = new List<DeckEntry>();
-
-            foreach (var id in npc.Deck)
+            if (string.IsNullOrEmpty(npc.Description) == false)
             {
-                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
-                if (newCard != null)
+                npcDB.Description = npc.Description;
+            }
+
+            
+
+            if (npc.DeckChanges != null && npc.DeckChanges.Count != 0)
+            {
+                if (npcDB.Deck.Count == 0)
                 {
-                    npcDb.Deck.Add(new DeckEntry()
+                    return "Error: NPC deck is empty.";
+                }                               
+
+                var oldIds = npcDB.Deck.Select(a => a.Card.Id).ToList();
+                if (npc.DeckChanges.Keys.All(id => oldIds.Contains(id))
+                    == false)
+                {
+                    return "Error: the card to be replaced was not found";
+                }
+
+                var availableCardIds = _daoDbContext.DeckEntries.Select(a => a.CardId).ToList();
+                if (npc.DeckChanges.Values.All(id => availableCardIds.Contains(id))
+                    == false)
+                {
+                    return "Error: the cardId provided leads to a non-existing card";
+                }
+
+                foreach (var oldId in oldIds)
+                {
+                    if (npc.DeckChanges.ContainsKey(oldId))
                     {
-                        Card = newCard
-                    });
+                        this._daoDbContext.DeckEntries
+                                           .Where(a => a.Npc.Id == npc.Id && a.Card.Id == oldId)
+                                           .ExecuteUpdate(b => b.SetProperty(a => a.CardId, npc.DeckChanges[oldId]));
+                    }
                 }
             }
 
@@ -192,27 +184,46 @@ namespace ProjectThreeAPI.Service
                 return (false, "No information provided");
             }
 
-            if (npc == null)
+            if (npc.DeckChanges != null && npc.DeckChanges.Count > 5)
             {
-                return (false, "The information was provided");
-            }
-
-            if (string.IsNullOrEmpty(npc.Name) == true)
-            {
-                return (false, "An NPC's name is mandatory");
-            }
-
-            if (string.IsNullOrEmpty(npc.Description) == true)
-            {
-                return (false, "The NPC's description is mandatory");
-            }
-
-            if (npc.Deck.Count == null || npc.Deck.Count != 5)
-            {
-                return (false, "The NPC's hand can neither be empty nor contain fewer or more than 5 cards");
+                return (false, "The NPC's hand cannot contain more than 5 cards");
             }
 
             return (true, String.Empty);
+        }
+
+        private async Task<List<DeckEntry>> GetNewDeck(List<int> cardsId)
+        {
+            var cardsDB = await this._daoDbContext
+              .Cards
+              .Where(a => cardsId.Contains(a.Id))
+              .ToListAsync();
+
+            foreach (var id in cardsId)
+            {
+                if (cardsDB.Select(a => a.Id).Contains(id) == false)
+                {
+
+                    return [];
+                }
+            }
+
+            var newDeck = new List<DeckEntry>();
+
+            foreach (var id in cardsId)
+            {
+                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                if (newCard != null)
+                {
+                    newDeck.Add(new DeckEntry()
+                    {
+                        Card = newCard,
+                        IsDeleted = false
+                    });
+                }
+            }
+
+            return newDeck;
         }
 
         public async Task<string> Delete(int id)
