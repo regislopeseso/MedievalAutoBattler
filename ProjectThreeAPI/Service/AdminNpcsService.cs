@@ -42,7 +42,7 @@ namespace ProjectThreeAPI.Service
             {
                 Name = npc.Name,
                 Description = npc.Description,
-                Deck = new List<DeckEntry>(),
+                Deck = new List<NpcDeckEntry>(),
                 IsDeleted = false
             };
 
@@ -77,7 +77,7 @@ namespace ProjectThreeAPI.Service
                 return (false, "The NPC's description is mandatory");
             }
 
-            if (npc.Deck.Count == null || npc.Deck.Count != 5)
+            if (npc.Deck.Count == 0 || npc.Deck.Count != 5)
             {
                 return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
@@ -160,7 +160,7 @@ namespace ProjectThreeAPI.Service
                     return "Error: the card to be replaced was not found";
                 }
 
-                var availableCardIds = _daoDbContext.DeckEntries.Select(a => a.CardId).ToList();
+                var availableCardIds = _daoDbContext.NpcDeckEntries.Select(a => a.CardId).ToList();
                 if (npc.DeckChanges.Values.All(id => availableCardIds.Contains(id))
                     == false)
                 {
@@ -171,7 +171,7 @@ namespace ProjectThreeAPI.Service
                 {
                     if (npc.DeckChanges.ContainsKey(oldId))
                     {
-                        this._daoDbContext.DeckEntries
+                        this._daoDbContext.NpcDeckEntries
                                            .Where(a => a.Npc.Id == npc.Id && a.Card.Id == oldId)
                                            .ExecuteUpdate(b => b.SetProperty(a => a.CardId, npc.DeckChanges[oldId]));
                     }
@@ -226,7 +226,7 @@ namespace ProjectThreeAPI.Service
             }
 
             var oldCardIds = npcDB.Deck.Select(a => a.Id).ToList();
-            await this._daoDbContext.DeckEntries
+            await this._daoDbContext.NpcDeckEntries
                               .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
                               .ExecuteDeleteAsync();
 
@@ -264,44 +264,6 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        private async Task<List<DeckEntry>> GetNewDeck(List<int> cardsId)
-        {
-            var cardsDB = await this._daoDbContext
-              .Cards
-              .Where(a => cardsId.Contains(a.Id) && a.IsDeleted == false)
-              .ToListAsync();
-
-            if (cardsDB == null || cardsDB.Count == 0)
-            {
-                return null;
-            }
-
-            foreach (var id in cardsId)
-            {
-                if (cardsDB.Select(a => a.Id).Contains(id) == false)
-                {
-
-                    return [];
-                }
-            }
-
-            var newDeck = new List<DeckEntry>();
-
-            foreach (var id in cardsId)
-            {
-                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
-                if (newCard != null)
-                {
-                    newDeck.Add(new DeckEntry()
-                    {
-                        Card = newCard,
-                        IsDeleted = false
-                    });
-                }
-            }
-
-            return newDeck;
-        }
 
         public async Task<string> Delete(int id)
         {
@@ -326,6 +288,43 @@ namespace ProjectThreeAPI.Service
                .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
             return "Delete action successful";
+        }
+        private async Task<List<NpcDeckEntry>> GetNewDeck(List<int> cardsId)
+        {
+            var cardsDB = await this._daoDbContext
+              .Cards
+              .Where(a => cardsId.Contains(a.Id) && a.IsDeleted == false)
+              .ToListAsync();
+
+            if (cardsDB == null || cardsDB.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (var id in cardsId)
+            {
+                if (cardsDB.Select(a => a.Id).Contains(id) == false)
+                {
+
+                    return [];
+                }
+            }
+
+            var newDeck = new List<NpcDeckEntry>();
+
+            foreach (var id in cardsId)
+            {
+                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                if (newCard != null)
+                {
+                    newDeck.Add(new NpcDeckEntry()
+                    {
+                        Card = newCard,
+                    });
+                }
+            }
+
+            return newDeck;
         }
     }
 }

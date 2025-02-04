@@ -44,8 +44,7 @@ namespace ProjectThreeAPI.Service
                 IsDeleted = false,
             };
 
-            _daoDbContext.Add(newCard);
-
+            this._daoDbContext.Add(newCard);
             await _daoDbContext.SaveChangesAsync();            
 
             return "Create action successful";
@@ -62,12 +61,12 @@ namespace ProjectThreeAPI.Service
                 return (false, "Error: The Card's Name is mandatory");
             }
 
-            if (card.Power == null || card.Power < 0 || card.Power > 9)
+            if (card.Power < 0 || card.Power > 9)
             {
                 return (false, "Error: The Card's Power must be between 0 and 9");
             }
 
-            if (card.UpperHand == null || card.UpperHand < 0 || card.UpperHand > 9)
+            if (card.UpperHand < 0 || card.UpperHand > 9)
             {
                 return (false, "Error: The Card's Upper Hand must be between 0 and 9");
             }
@@ -142,12 +141,12 @@ namespace ProjectThreeAPI.Service
                 return (false, "Error: The Card's Name is mandatory");
             }
 
-            if (card.Power == null || card.Power < 0 || card.Power > 9)
+            if (card.Power < 0 || card.Power > 9)
             {
                 return (false, "Error: The Card's Power must be between 0 and 9");
             }
 
-            if (card.UpperHand == null || card.UpperHand < 0 || card.UpperHand > 9)
+            if (card.UpperHand < 0 || card.UpperHand > 9)
             {
                 return (false, "Error: The Card's Upper Hand must be between 0 and 9");
             }
@@ -162,7 +161,7 @@ namespace ProjectThreeAPI.Service
 
         public async Task<string> Delete(int id)
         {
-            if (id == null || id <= 0)
+            if (id <= 0)
             {
                 return $"Error: Invalid Card Id. Card Ids cannot be empty, equal to or lesser than 0";
             }

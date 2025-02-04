@@ -19,7 +19,7 @@ namespace ProjectThreeAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(AdminNpcsCreateRequest npc)
         {
-            var message = await _adminNpcService.Create(npc);
+            var message = await this._adminNpcService.Create(npc);
 
             var response = new Response<string>
             {
@@ -32,7 +32,7 @@ namespace ProjectThreeAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Read()
         {
-            var (response, message) = await _adminNpcService.Read();
+            var (response, message) = await this._adminNpcService.Read();
 
             var result = new Response<List<AdminNpcsReadResponse>>()
             {
@@ -46,7 +46,7 @@ namespace ProjectThreeAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> Update(AdminNpcsUpdateRequest npc)
         {
-            var message = await _adminNpcService.Update(npc);
+            var message = await this._adminNpcService.Update(npc);
 
             var response = new Response<string>()
             {
@@ -59,7 +59,7 @@ namespace ProjectThreeAPI.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
-            var message = await _adminNpcService.Delete(id);
+            var message = await this._adminNpcService.Delete(id);
 
             var response = new Response<string>()
             {
