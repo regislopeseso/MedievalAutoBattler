@@ -22,7 +22,7 @@ namespace MedievalAutoBattler.Service
 
             var collection = await this._daoDbContext.Decks
                 .Where(a => a.Save.Id == saveId)
-                .SelectMany(a => a.DeckEntries)
+                .SelectMany(a => a.SaveDeckEntries)
                 .Select(a => a.Card)               
                 .ToListAsync();
 

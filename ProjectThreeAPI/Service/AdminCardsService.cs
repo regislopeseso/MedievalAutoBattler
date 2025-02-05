@@ -39,7 +39,7 @@ namespace ProjectThreeAPI.Service
                 Name = card.Name,
                 Power = card.Power,
                 UpperHand = card.UpperHand,
-                Level = Helper.GetCardLevel(card),
+                Level = Helper.GetCardLevel(card.Power, card.UpperHand),
                 Type = card.Type,
                 IsDeleted = false,
             };
@@ -159,16 +159,16 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-        public async Task<string> Delete(int id)
+        public async Task<string> Delete(int cardId)
         {
-            if (id <= 0)
+            if (cardId <= 0)
             {
                 return $"Error: Invalid Card Id. Card Ids cannot be empty, equal to or lesser than 0";
             }
 
             var exists = await this._daoDbContext
                 .Cards
-                .Where(a => a.Id == id && a.IsDeleted == false)
+                .Where(a => a.Id == cardId && a.IsDeleted == false)
                 .AnyAsync();
 
             if (exists == false)
@@ -178,7 +178,7 @@ namespace ProjectThreeAPI.Service
 
             await this._daoDbContext
                .Cards
-               .Where(u => u.Id == id)
+               .Where(u => u.Id == cardId)
                .ExecuteUpdateAsync(b => b.SetProperty(u => u.IsDeleted, true));
 
             return "Delete action successful";

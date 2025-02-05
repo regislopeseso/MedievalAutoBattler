@@ -1,4 +1,5 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.OpenApi.Any;
@@ -36,24 +37,23 @@ namespace ProjectThreeAPI.Service
             if (exists == true)
             {
                 return $"Error: this NPC already exists - {npc.Name}";
-            }
+            }            
+
+            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(npc.CardIds);
+            if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
+            {
+                return ErrorMessage;
+            }            
 
             var newNpc = new Npc
             {
                 Name = npc.Name,
                 Description = npc.Description,
-                Deck = new List<NpcDeckEntry>(),
+                Deck = newNpcDeckEntries,
+                Level = Helper.GetNpcLevel(newNpcDeckEntries.Select(a => a.Card.Level).ToList()),
                 IsDeleted = false
-            };
-
-            newNpc.Deck = await GetNewDeck(npc.Deck);
-
-            newNpc.Level = Helper.GetNpcLevel(newNpc);
-            if (newNpc.Deck == null || newNpc.Deck.Count == 0)
-            {
-                return "Error: One or more CardIds invalid";
-            }
-
+            };          
+       
             _daoDbContext.Add(newNpc);
 
             await _daoDbContext.SaveChangesAsync();
@@ -77,7 +77,7 @@ namespace ProjectThreeAPI.Service
                 return (false, "The NPC's description is mandatory");
             }
 
-            if (npc.Deck.Count == 0 || npc.Deck.Count != 5)
+            if (npc.CardIds.Count == 0 || npc.CardIds.Count != 5)
             {
                 return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
@@ -229,10 +229,16 @@ namespace ProjectThreeAPI.Service
                               .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
                               .ExecuteDeleteAsync();
 
+            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(npc.CardIds);
+            if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
+            {
+                return ErrorMessage;
+            }
+
             npcDB.Name = npc.Name;
             npcDB.Description = npc.Description;
-            npcDB.Deck = await GetNewDeck(npc.CardIds);
-
+            npcDB.Deck = newNpcDeckEntries;
+            npcDB.Level = Helper.GetNpcLevel(newNpcDeckEntries.Select(a => a.Card.Level).ToList());
 
             await _daoDbContext.SaveChangesAsync();
 
@@ -264,17 +270,16 @@ namespace ProjectThreeAPI.Service
         }
 
 
-        public async Task<string> Delete(int id)
+        public async Task<string> Delete(int npcId)
         {
-            if (id == null || id <= 0)
+            if (npcId <= 0)
             {
                 return $"Error: Invalid Npc ID, ID cannot be empty or equal/lesser than 0";
             }
 
             var exists = await this._daoDbContext
                 .Npcs
-                .Where(a => a.Id == id && a.IsDeleted == false)
-                .AnyAsync();
+                .AnyAsync(a => a.Id == npcId && a.IsDeleted == false);
 
             if (exists == false)
             {
@@ -283,35 +288,32 @@ namespace ProjectThreeAPI.Service
 
             await this._daoDbContext
                .Npcs
-               .Where(a => a.Id == id)
+               .Where(a => a.Id == npcId)
                .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
             return "Delete action successful";
         }
-        private async Task<List<NpcDeckEntry>> GetNewDeck(List<int> cardsId)
+        private async Task<(List<NpcDeckEntry>, string)> GetNewDeck(List<int> cardIds)
         {
             var cardsDB = await this._daoDbContext
               .Cards
-              .Where(a => cardsId.Contains(a.Id) && a.IsDeleted == false)
+              .Where(a => cardIds.Contains(a.Id) && a.IsDeleted == false)
               .ToListAsync();
-
             if (cardsDB == null || cardsDB.Count == 0)
             {
-                return null;
+                return ([], "Error: invalid card Ids");
             }
 
-            foreach (var id in cardsId)
+            var uniqueCardIds = cardIds.Distinct().ToList().Count;
+            if (uniqueCardIds != cardsDB.Count)
             {
-                if (cardsDB.Select(a => a.Id).Contains(id) == false)
-                {
-
-                    return [];
-                }
+                var notFoundIds = cardIds.Distinct().ToList().Except(cardsDB.Select(a => a.Id).ToList());
+                return ([], $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
             }
-
+          
             var newDeck = new List<NpcDeckEntry>();
 
-            foreach (var id in cardsId)
+            foreach (var id in cardIds)
             {
                 var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
                 if (newCard != null)
@@ -323,7 +325,7 @@ namespace ProjectThreeAPI.Service
                 }
             }
 
-            return newDeck;
+            return (newDeck, String.Empty);
         }
     }
 }

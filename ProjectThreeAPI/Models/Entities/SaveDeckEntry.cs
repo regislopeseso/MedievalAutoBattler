@@ -10,10 +10,12 @@ namespace MedievalAutoBattler.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
+        
+        [ForeignKey("Card")]
+        public int CardId { get; set; }
         public required Card Card { get; set; }
 
-        [InverseProperty(("DeckEntries"))]
+        [InverseProperty(("SaveDeckEntries"))]
         public Deck Deck { get; set; }   // <-- Add this
     }
 }

@@ -57,9 +57,9 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int npcId)
         {
-            var message = await this._adminNpcService.Delete(id);
+            var message = await this._adminNpcService.Delete(npcId);
 
             var response = new Response<string>()
             {

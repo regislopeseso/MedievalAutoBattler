@@ -27,21 +27,14 @@ namespace MedievalAutoBattler.Service
             var newSave = new Save
             {
                 Name = save.Name,
-                PlayerLevel = 0,
-                Gold = 0,
-                CountMatches = 0,
-                CountVictories = 0,
-                CountDefeats = 0,
-                CountBoosters = 0,
                 Decks = new List<Deck>
                 {
                     new Deck
                     {
                         Name = "Starting Deck",
-                        DeckEntries = await GetNewDeck()
+                        SaveDeckEntries = await GetNewDeck()
                     }
                 },
-                IsDeleted = false
             };
 
             this._daoDbContext.Add(newSave);

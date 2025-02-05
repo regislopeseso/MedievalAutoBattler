@@ -5,22 +5,14 @@ namespace ProjectThreeAPI.Utilities
 {
     public static class Helper
     {
-        public static int GetCardLevel(AdminCardsCreateRequest card)
+        public static int GetCardLevel(int power, int upperHand)
         {
-            return (int)Math.Ceiling((double)(card.Power + card.UpperHand) / 2);
+            return (int)Math.Ceiling((double)(power + upperHand) / 2);
         }
 
-        public static int GetNpcLevel(Npc npc)
+        public static int GetNpcLevel(List<int> cardLevels)
         {
-            var cards = npc.Deck.Select(x => x.Card).ToList();
-            var levelSum = cards.Sum(x => x.Level);
-
-            if (levelSum == 0 || cards.Count == 0)
-            {
-                return 0;   
-            }
-
-            return (int)Math.Ceiling((double)(levelSum / cards.Count));
+            return (int)Math.Ceiling((double)(cardLevels.Sum() / cardLevels.Count));
         }
     }
 }

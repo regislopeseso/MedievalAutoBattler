@@ -57,9 +57,9 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int cardId)
         {
-            var message = await this._adminCardService.Delete(id);
+            var message = await this._adminCardService.Delete(cardId);
 
             var response = new Response<string>()
             {
