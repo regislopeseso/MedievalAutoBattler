@@ -200,7 +200,6 @@ namespace ProjectThreeAPI.Service
         public async Task<string> Update(AdminNpcsUpdateRequest npc)
         {
             var (isValid, message) = this.UpdateIsValid(npc);
-
             if (isValid == false)
             {
                 return message;
@@ -243,22 +242,22 @@ namespace ProjectThreeAPI.Service
         {
             if (npc == null)
             {
-                return (false, "The information was provided");
+                return (false, "Error: no information was provided for creating a new NPC");
             }
 
             if (string.IsNullOrEmpty(npc.Name) == true)
             {
-                return (false, "An NPC's name is mandatory");
+                return (false, "Error: the NPC's name is mandatory");
             }
 
             if (string.IsNullOrEmpty(npc.Description) == true)
             {
-                return (false, "The NPC's description is mandatory");
+                return (false, "Error: the NPC's description is mandatory");
             }
 
             if (npc.CardIds == null || npc.CardIds.Count == 0 || npc.CardIds.Count != 5)
             {
-                return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+                return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
 
             return (true, String.Empty);

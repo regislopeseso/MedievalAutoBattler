@@ -20,9 +20,10 @@ namespace MedievalAutoBattler.Service
             }
 
 
-            var collection = await this._daoDbContext.SaveDeckEntries
-                .Where(a => a.SaveId == saveId)
-                .Select(a => a.Card)
+            var collection = await this._daoDbContext.Decks
+                .Where(a => a.Save.Id == saveId)
+                .SelectMany(a => a.DeckEntries)
+                .Select(a => a.Card)               
                 .ToListAsync();
 
             if (collection == null || collection.Count == 0)

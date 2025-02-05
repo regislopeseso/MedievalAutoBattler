@@ -1,8 +1,9 @@
-﻿using MedievalAutoBattler.Service;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
 using ProjectThreeAPI.Models.Dtos.Response;
 
-namespace MedievalAutoBattler.Models.Dtos.Request
+namespace MedievalAutoBattler.Controllers
 {
     [ApiController]
     [Route("player/decks/[action]")]
@@ -16,9 +17,9 @@ namespace MedievalAutoBattler.Models.Dtos.Request
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(List<int> cardIds)
+        public async Task<IActionResult> Create(PlayerDecksCreateRequest newDeck)
         {
-            var message = await this._playerDecksService.Create(cardIds);
+            var message = await _playerDecksService.Create(newDeck);
 
             var response = new Response<string>
             {

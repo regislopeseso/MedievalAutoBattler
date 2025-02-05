@@ -20,13 +20,9 @@ namespace MedievalAutoBattler.Service
             if (isValid == false)
             {
                 return message;
-            }         
+            }
 
-            var random = new Random();
-            var newDeck = await this._daoDbContext.Cards
-                .Where(a => (a.Power + a.UpperHand) < 5)
-                .Take(5)
-                .ToListAsync();
+            var random = new Random();        
 
             var newSave = new Save
             {
@@ -37,7 +33,14 @@ namespace MedievalAutoBattler.Service
                 CountVictories = 0,
                 CountDefeats = 0,
                 CountBoosters = 0,
-                Deck = await GetNewDeck(),
+                Decks = new List<Deck>
+                {
+                    new Deck
+                    {
+                        Name = "Starting Deck",
+                        DeckEntries = await GetNewDeck()
+                    }
+                },
                 IsDeleted = false
             };
 
@@ -57,23 +60,23 @@ namespace MedievalAutoBattler.Service
             if (string.IsNullOrEmpty(save.Name) == true)
             {
                 return (false, "Error: a Name must be provided");
-            }      
+            }
 
             return (true, String.Empty);
         }
         private async Task<List<SaveDeckEntry>> GetNewDeck()
-        {           
+        {
             var cardsDB = await this._daoDbContext
               .Cards
               .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
-              .ToListAsync();          
+              .ToListAsync();
 
             if (cardsDB == null || cardsDB.Count == 0)
             {
-                return null;
+                return [];
             }
 
-            var random = new Random();          
+            var random = new Random();
             var totalCards = cardsDB.Count;
             var randomCards = new List<Card>();
             while (randomCards.Count < 5)

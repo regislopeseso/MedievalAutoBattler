@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ProjectThreeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250205124919_Fix-SaveDeckEntries_Table_Attempt3")]
+    partial class FixSaveDeckEntries_Table_Attempt3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,7 +42,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasIndex("SaveId");
 
-                    b.ToTable("Decks", (string)null);
+                    b.ToTable("Decks");
                 });
 
             modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Save", b =>
@@ -77,7 +80,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("saves", (string)null);
+                    b.ToTable("saves");
                 });
 
             modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveDeckEntry", b =>
@@ -100,7 +103,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasIndex("DeckId");
 
-                    b.ToTable("SaveDeckEntries", (string)null);
+                    b.ToTable("SaveDeckEntries");
                 });
 
             modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
@@ -132,7 +135,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("cards", (string)null);
+                    b.ToTable("cards");
                 });
 
             modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
@@ -159,7 +162,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("npcs", (string)null);
+                    b.ToTable("npcs");
                 });
 
             modelBuilder.Entity("ProjectThreeAPI.Models.Entities.NpcDeckEntry", b =>
@@ -182,7 +185,7 @@ namespace ProjectThreeAPI.Migrations
 
                     b.HasIndex("NpcId");
 
-                    b.ToTable("NpcDeckEntries", (string)null);
+                    b.ToTable("NpcDeckEntries");
                 });
 
             modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Deck", b =>

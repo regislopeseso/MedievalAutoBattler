@@ -1,5 +1,4 @@
-﻿using ProjectThreeAPI.Models.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MedievalAutoBattler.Models.Entities
@@ -17,7 +16,8 @@ namespace MedievalAutoBattler.Models.Entities
         public int CountVictories { get; set; }
         public int CountDefeats { get; set; }
         public int CountBoosters { get; set; }
-        public List<SaveDeckEntry>? Deck { get; set; }
+        [InverseProperty("Save")]
+        public required List<Deck> Decks { get; set; }
         public bool IsDeleted { get; set; }
     }
 }

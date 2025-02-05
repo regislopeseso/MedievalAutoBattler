@@ -11,16 +11,16 @@ namespace MedievalAutoBattler.Service
             _daoDbContext = daoDbContext;
         }
 
-        public async Task<(PlayerStatsReadResponse?, string)> Read(int id)
+        public async Task<(PlayerStatsReadResponse?, string)> Read(int saveId)
         {
-            if(id == 0)
+            if(saveId == 0)
             {
                 return (null, "Error: informing a valid id is mandatory");
             }
 
             var saveDB = await this._daoDbContext.Saves
                 .AsNoTracking()
-                .Where(a => a.Id == id && a.IsDeleted == false)
+                .Where(a => a.Id == saveId && a.IsDeleted == false)
                 .FirstOrDefaultAsync();
 
             if (saveDB == null)

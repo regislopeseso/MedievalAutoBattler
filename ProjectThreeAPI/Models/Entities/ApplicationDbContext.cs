@@ -12,5 +12,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Npc> Npcs { get; set; }
     public DbSet<NpcDeckEntry> NpcDeckEntries { get; set; }
     public DbSet<Save> Saves { get; set; }
+    public DbSet<Deck> Decks { get; set; }
     public DbSet<SaveDeckEntry> SaveDeckEntries { get; set; }
 }
