@@ -20,10 +20,7 @@ namespace MedievalAutoBattler.Service
             if (isValid == false)
             {
                 return message;
-            }
-
-            var random = new Random();        
-
+            }                 
             var newSave = new Save
             {
                 Name = save.Name,
