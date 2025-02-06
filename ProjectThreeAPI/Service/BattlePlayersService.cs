@@ -1,4 +1,5 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,23 +11,23 @@ namespace MedievalAutoBattler.Service
 
         public BattlePlayersService(ApplicationDbContext daoDbContext)
         {
-            _daoDbContext = daoDbContext;
+            this._daoDbContext = daoDbContext;
         }
 
-        public async Task<string> Create(BattlePlayersCreateRequest newBattle)
+        public async Task<(BattlePlayersCreateResponse?, string)> Create(BattlePlayersCreateRequest request)
         {
-            if (newBattle.SaveId <= 0)
+            if (request.SaveId <= 0)
             {
-                return "Error: invalid Save Id";
+                return (null, "Error: invalid Save Id");
             }
 
             var saveDB = await this._daoDbContext
-                .Saves
-                .FirstOrDefaultAsync(a => a.Id == newBattle.SaveId);
+                                   .Saves
+                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId);
 
             if (saveDB == null)
             {
-                return "Error: save not found.";
+                return (null, "Error: save not found.");
             }
 
             var newMatch = new Battle
@@ -34,11 +35,11 @@ namespace MedievalAutoBattler.Service
                 Save = saveDB,
             };
 
-            _daoDbContext.Add(newMatch);
+            this._daoDbContext.Add(newMatch);
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return "New battle started";
+            return (null, "New battle started");
         }
     }
 }

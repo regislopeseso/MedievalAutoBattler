@@ -15,16 +15,17 @@ namespace MedievalAutoBattler.Controllers
         private readonly BattleNpcsService _battleNpcsService;
         public BattleNpcsController(BattleNpcsService battleNpcsService)
         {
-            _battleNpcsService = battleNpcsService;
+            this._battleNpcsService = battleNpcsService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(BattleNpcsCreateRequest request)
         {
-            var message = await _battleNpcsService.Create(request);
+            var (content, message) = await this._battleNpcsService.Create(request);
 
-            var response = new Response<string>()
+            var response = new Response<BattleNpcsCreateResponse>()
             {
+                Content = content,
                 Message = message
             };
 
@@ -32,13 +33,13 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(int battleId)
+        public async Task<IActionResult> Read(BattleNpcsReadRequest request)
         {
-            var (npcName, message) = await _battleNpcsService.Read(battleId);
+            var (content, message) = await this._battleNpcsService.Read(request);
 
             var response = new Response<BattleNpcsReadResponse>()
             {
-                Content = npcName,
+                Content = content,
                 Message = message
             };
 

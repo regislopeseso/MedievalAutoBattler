@@ -1,4 +1,5 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Http;
@@ -14,16 +15,17 @@ namespace MedievalAutoBattler.Controllers
         private readonly BattlePlayersService _battlePlayersService;
         public BattlePlayersController(BattlePlayersService battlePlayersService)
         {
-            _battlePlayersService = battlePlayersService;
+            this._battlePlayersService = battlePlayersService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(BattlePlayersCreateRequest newBattle)
+        public async Task<IActionResult> Create(BattlePlayersCreateRequest request)
         {
-            var message = await _battlePlayersService.Create(newBattle);
+            var (content, message) = await this._battlePlayersService.Create(request);
 
-            var response = new Response<string>()
+            var response = new Response<BattlePlayersCreateResponse>()
             {
+                Content = content,
                 Message = message
             };
 
