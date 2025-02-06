@@ -1,4 +1,5 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -22,64 +23,63 @@ namespace ProjectThreeAPI.Service
             this._daoDbContext = daoDBcontext;
         }
 
-        public async Task<string> Create(AdminNpcsCreateRequest npc)
+        public async Task<(AdminNpcsCreateResponse?, string)> Create(AdminNpcsCreateRequest request)
         {
-            var (isValid, message) = this.CreateIsValid(npc);
+            var (isValid, message) = this.CreateIsValid(request);
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
             var exists = await this._daoDbContext
                 .Npcs
-                .Where(a => a.Name == npc.Name && a.IsDeleted == false)
-                .AnyAsync();
+                .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
             if (exists == true)
             {
-                return $"Error: this NPC already exists - {npc.Name}";
-            }            
+                return (null, $"Error: this NPC already exists - {request.Name}");
+            }
 
-            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(npc.CardIds);
+            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
             if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
             {
-                return ErrorMessage;
-            }            
+                return (null, ErrorMessage);
+            }
 
             var newNpc = new Npc
             {
-                Name = npc.Name,
-                Description = npc.Description,
+                Name = request.Name,
+                Description = request.Description,
                 Deck = newNpcDeckEntries,
                 Level = Helper.GetNpcLevel(newNpcDeckEntries.Select(a => a.Card.Level).ToList()),
                 IsDeleted = false
-            };          
-       
-            _daoDbContext.Add(newNpc);
+            };
 
-            await _daoDbContext.SaveChangesAsync();
+            this._daoDbContext.Add(newNpc);
 
-            return "Create action successful";
+            await this._daoDbContext.SaveChangesAsync();
+
+            return (null, "Create successful");
         }
-        public (bool, string) CreateIsValid(AdminNpcsCreateRequest npc)
+        public (bool, string) CreateIsValid(AdminNpcsCreateRequest request)
         {
-            if (npc == null)
+            if (request == null)
             {
-                return (false, "The information was provided");
+                return (false, "Error: no information was provided");
             }
 
-            if (string.IsNullOrEmpty(npc.Name) == true)
+            if (string.IsNullOrEmpty(request.Name) == true)
             {
-                return (false, "An NPC's name is mandatory");
+                return (false, "Error: the NPC's name is mandatory");
             }
 
-            if (string.IsNullOrEmpty(npc.Description) == true)
+            if (string.IsNullOrEmpty(request.Description) == true)
             {
-                return (false, "The NPC's description is mandatory");
+                return (false, "Error: the NPC's description is mandatory");
             }
 
-            if (npc.CardIds.Count == 0 || npc.CardIds.Count != 5)
+            if (request.CardIds.Count == 0 || request.CardIds.Count != 5)
             {
-                return (false, "The NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+                return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
 
             return (true, String.Empty);
@@ -115,153 +115,164 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync(), "Read Successful");
         }
 
-        public async Task<string> FlexUpdate(AdminNpcsFlexUpdateRequest npc)
+        public async Task<(AdminNpcsFlexUpdateResponse?, string)> FlexUpdate(AdminNpcsFlexUpdateRequest request)
         {
-            var (isValid, message) = this.FlexUpdateIsValid(npc);
+            var (isValid, message) = this.FlexUpdateIsValid(request);
+
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
-            var npcDB = await _daoDbContext
-                .Npcs
-                .Include(a => a.Deck)
-                .ThenInclude(a => a.Card)
-                .Where(a => a.Id == npc.Id && a.IsDeleted == false)
-                .FirstOrDefaultAsync();
+            var npcDB = await this._daoDbContext
+                                  .Npcs
+                                  .Include(a => a.Deck)
+                                  .ThenInclude(a => a.Card)
+                                  .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
+
             if (npcDB == null)
             {
-                return $"Npc not found: {npc.Name}";
+                return (null, $"Npc not found: {request.Name}");
             }
 
-            if (string.IsNullOrEmpty(npc.Name) == false)
+            if (string.IsNullOrEmpty(request.Name) == false)
             {
-                npcDB.Name = npc.Name;
+                npcDB.Name = request.Name;
             }
 
-            if (string.IsNullOrEmpty(npc.Description) == false)
+            if (string.IsNullOrEmpty(request.Description) == false)
             {
-                npcDB.Description = npc.Description;
+                npcDB.Description = request.Description;
             }
 
-
-
-            if (npc.DeckChanges != null && npc.DeckChanges.Count != 0)
+            if (request.DeckChanges != null && request.DeckChanges.Count != 0)
             {
                 if (npcDB.Deck.Count == 0)
                 {
-                    return "Error: NPC deck is empty.";
+                    return (null, "Error: NPC deck is empty");
                 }
 
-                var oldIds = npcDB.Deck.Select(a => a.Card.Id).ToList();
-                if (npc.DeckChanges.Keys.All(id => oldIds.Contains(id))
-                    == false)
+                var oldIds = npcDB.Deck
+                                  .Select(a => a.Card.Id)
+                                  .ToList();
+                if (request.DeckChanges.Keys.All(id => oldIds.Contains(id)) == false)
                 {
-                    return "Error: the card to be replaced was not found";
+                    return (null, "Error: the card to be replaced was not found");
                 }
 
-                var availableCardIds = _daoDbContext.NpcDeckEntries.Select(a => a.CardId).ToList();
-                if (npc.DeckChanges.Values.All(id => availableCardIds.Contains(id))
-                    == false)
+                var availableCardIds = this._daoDbContext
+                                           .NpcDeckEntries
+                                           .Select(a => a.CardId)
+                                           .ToList();
+                if (request.DeckChanges.Values.All(id => availableCardIds.Contains(id)) == false)
                 {
-                    return "Error: the cardId provided leads to a non-existing card";
+                    return (null, "Error: the cardId provided leads to a non-existing card");
                 }
 
                 foreach (var oldId in oldIds)
                 {
-                    if (npc.DeckChanges.ContainsKey(oldId))
+                    if (request.DeckChanges.ContainsKey(oldId))
                     {
-                        this._daoDbContext.NpcDeckEntries
-                                           .Where(a => a.Npc.Id == npc.Id && a.Card.Id == oldId)
-                                           .ExecuteUpdate(b => b.SetProperty(a => a.CardId, npc.DeckChanges[oldId]));
+                        this._daoDbContext
+                            .NpcDeckEntries
+                            .Where(a => a.Npc.Id == request.Id && a.Card.Id == oldId)
+                            .ExecuteUpdate(b => b.SetProperty(a => a.CardId, request.DeckChanges[oldId]));
                     }
                 }
             }
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return "Update action successful";
+            return (null, "Update action successful");
         }
-        private (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest npc)
+        private (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest request)
         {
-            if (npc == null)
+            if (request == null)
             {
-                return (false, "No information provided");
+                return (false, "Error: no information was provided");
             }
 
-            if (npc.DeckChanges != null && npc.DeckChanges.Count > 5)
+            if (request.DeckChanges != null && request.DeckChanges.Count > 5)
             {
-                return (false, "The NPC's deck cannot contain more than 5 cards");
+                return (false, "Error: the NPC's deck cannot contain more than 5 cards");
             }
 
             return (true, String.Empty);
         }
 
-        public async Task<string> Update(AdminNpcsUpdateRequest npc)
+        public async Task<(AdminNpcsUpdateResponse?, string)> Update(AdminNpcsUpdateRequest request)
         {
-            var (isValid, message) = this.UpdateIsValid(npc);
+            var (isValid, message) = this.UpdateIsValid(request);
+
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
-            var npcDB = await _daoDbContext
-                .Npcs
-                .Include(a => a.Deck)
-                .ThenInclude(b => b.Card)
-                .Where(a => a.Id == npc.Id && a.IsDeleted == false)
-                .FirstOrDefaultAsync();            
+            var npcDB = await this._daoDbContext
+                                  .Npcs
+                                  .Include(a => a.Deck)
+                                  .ThenInclude(b => b.Card)
+                                  .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
 
             if (npcDB == null)
             {
-                return $"Npc not found: {npc.Name}";
+                return (null, $"Error: NPC not found: {request.Name}");
             }
 
-            var availableCardIds = _daoDbContext.Cards.Where(a => a.IsDeleted == false).Select(a => a.Id).ToList();
-            if (npc.CardIds.All(id => availableCardIds.Contains(id))
-                == false)
+            var availableCardIds = this._daoDbContext
+                                       .Cards
+                                       .Where(a => a.IsDeleted == false)
+                                       .Select(a => a.Id)
+                                       .ToList();
+
+            if (request.CardIds.All(id => availableCardIds.Contains(id)) == false)
             {
-                return "Error: the cardId or cardIds provided lead to non-existing cards";
+                return (null, "Error: the cardId or cardIds provided lead to non-existing cards");
             }
 
-            var oldCardIds = npcDB.Deck.Select(a => a.Id).ToList();
-            await this._daoDbContext.NpcDeckEntries
-                              .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == npc.Id)
-                              .ExecuteDeleteAsync();
+            var oldCardIds = npcDB.Deck
+                                  .Select(a => a.Id)
+                                  .ToList();
 
-            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(npc.CardIds);
+            await this._daoDbContext.NpcDeckEntries
+                      .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == request.Id)
+                      .ExecuteDeleteAsync();
+
+            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+
             if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
             {
-                return ErrorMessage;
+                return (null, ErrorMessage);
             }
 
-            npcDB.Name = npc.Name;
-            npcDB.Description = npc.Description;
+            npcDB.Name = request.Name;
+            npcDB.Description = request.Description;
             npcDB.Deck = newNpcDeckEntries;
             npcDB.Level = Helper.GetNpcLevel(newNpcDeckEntries.Select(a => a.Card.Level).ToList());
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return "Update action successful";
+            return (null, "Update action successful");
         }
-        private (bool, string) UpdateIsValid(AdminNpcsUpdateRequest npc)
+        private (bool, string) UpdateIsValid(AdminNpcsUpdateRequest request)
         {
-            if (npc == null)
+            if (request == null)
             {
                 return (false, "Error: no information was provided for creating a new NPC");
             }
 
-            if (string.IsNullOrEmpty(npc.Name) == true)
+            if (string.IsNullOrEmpty(request.Name) == true)
             {
                 return (false, "Error: the NPC's name is mandatory");
             }
 
-            if (string.IsNullOrEmpty(npc.Description) == true)
+            if (string.IsNullOrEmpty(request.Description) == true)
             {
                 return (false, "Error: the NPC's description is mandatory");
             }
 
-            if (npc.CardIds == null || npc.CardIds.Count == 0 || npc.CardIds.Count != 5)
+            if (request.CardIds == null || request.CardIds.Count == 0 || request.CardIds.Count != 5)
             {
                 return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
@@ -270,52 +281,60 @@ namespace ProjectThreeAPI.Service
         }
 
 
-        public async Task<string> Delete(int npcId)
+        public async Task<(AdminNpcsDeleteResponse?, string)> Delete(AdminNpcsDeleteRequest request)
         {
-            if (npcId <= 0)
+            if (request.NpcId <= 0)
             {
-                return $"Error: Invalid Npc ID, ID cannot be empty or equal/lesser than 0";
+                return (null, $"Error: invalid NPC ID, ID cannot be empty or equal/lesser than 0");
             }
 
+
             var exists = await this._daoDbContext
-                .Npcs
-                .AnyAsync(a => a.Id == npcId && a.IsDeleted == false);
+                                   .Npcs
+                                   .AnyAsync(a => a.Id == request.NpcId && a.IsDeleted == false);
 
             if (exists == false)
             {
-                return $"Error: Invalid Npc ID, the npc does not exist or is already deleted";
+                return (null, $"Error: invalid NPC ID, the npc does not exist or is already deleted");
             }
 
             await this._daoDbContext
-               .Npcs
-               .Where(a => a.Id == npcId)
-               .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+                      .Npcs
+                      .Where(a => a.Id == request.NpcId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            return "Delete action successful";
+            return (null, "Delete successful");
         }
-        private async Task<(List<NpcDeckEntry>, string)> GetNewDeck(List<int> cardIds)
+        private async Task<(List<NpcDeckEntry>?, string)> GetNewDeck(List<int> cardIds)
         {
             var cardsDB = await this._daoDbContext
-              .Cards
-              .Where(a => cardIds.Contains(a.Id) && a.IsDeleted == false)
-              .ToListAsync();
+                                    .Cards
+                                    .Where(a => cardIds.Contains(a.Id) && a.IsDeleted == false)
+                                    .ToListAsync();
+
             if (cardsDB == null || cardsDB.Count == 0)
             {
-                return ([], "Error: invalid card Ids");
+                return (null, "Error: invalid card Ids");
             }
 
-            var uniqueCardIds = cardIds.Distinct().ToList().Count;
+            var uniqueCardIds = cardIds.Distinct()
+                                       .ToList()
+                                       .Count;
+
             if (uniqueCardIds != cardsDB.Count)
             {
-                var notFoundIds = cardIds.Distinct().ToList().Except(cardsDB.Select(a => a.Id).ToList());
-                return ([], $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
+                var notFoundIds = cardIds.Distinct()
+                                         .ToList()
+                                         .Except(cardsDB.Select(a => a.Id).ToList());
+
+                return (null, $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
             }
-          
+
             var newDeck = new List<NpcDeckEntry>();
 
             foreach (var id in cardIds)
             {
-                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                var newCard = cardsDB.FirstOrDefault(a => a.Id == id);
                 if (newCard != null)
                 {
                     newDeck.Add(new NpcDeckEntry()

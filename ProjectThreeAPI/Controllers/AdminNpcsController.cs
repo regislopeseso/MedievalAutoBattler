@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
+using Microsoft.AspNetCore.Mvc;
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Service;
@@ -17,12 +19,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(AdminNpcsCreateRequest npc)
+        public async Task<IActionResult> Create(AdminNpcsCreateRequest request)
         {
-            var message = await this._adminNpcService.Create(npc);
+            var (content, message) = await this._adminNpcService.Create(request);
 
-            var response = new Response<string>
+            var response = new Response<AdminNpcsCreateResponse>
             {
+                Content = content,
                 Message = message
             };
 
@@ -30,13 +33,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read()
+        public async Task<IActionResult> Read(AdminNpcsReadRequest request)
         {
-            var (npcs, message) = await this._adminNpcService.Read();
+            var (content, message) = await this._adminNpcService.Read();
 
             var response = new Response<List<AdminNpcsReadResponse>>()
             {
-                Content = npcs,
+                Content = content,
                 Message = message
             };
 
@@ -44,12 +47,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(AdminNpcsUpdateRequest npc)
+        public async Task<IActionResult> Update(AdminNpcsUpdateRequest request)
         {
-            var message = await this._adminNpcService.Update(npc);
+            var (content, message) = await this._adminNpcService.Update(request);
 
-            var response = new Response<string>()
+            var response = new Response<AdminNpcsUpdateResponse>()
             {
+                Content = content,
                 Message = message
             };
 
@@ -57,12 +61,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int npcId)
+        public async Task<IActionResult> Delete(AdminNpcsDeleteRequest request)
         {
-            var message = await this._adminNpcService.Delete(npcId);
+            var (content, message) = await this._adminNpcService.Delete(request);
 
-            var response = new Response<string>()
+            var response = new Response<AdminNpcsDeleteResponse>()
             {
+                Content = content,
                 Message = message
             };
 

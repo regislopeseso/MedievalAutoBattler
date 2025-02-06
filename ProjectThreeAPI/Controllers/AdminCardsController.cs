@@ -21,11 +21,11 @@ namespace ProjectThreeAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(AdminCardsCreateRequest request)
         {
-            var (result, message) = await this._adminCardService.Create(request);
+            var (content, message) = await this._adminCardService.Create(request);
 
             var response = new Response<AdminCardsCreateResponse>
             {
-                Content = result,
+                Content = content,
                 Message = message
             };
 
@@ -35,11 +35,11 @@ namespace ProjectThreeAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Read([FromQuery] AdminCardsReadRequest request)
         {
-            var (result, message) = await this._adminCardService.Read();
+            var (content, message) = await this._adminCardService.Read();
 
             var response = new Response<List<AdminCardsReadResponse>>()
             {
-                Content = result,
+                Content = content,
                 Message = message
             };
 
@@ -49,11 +49,11 @@ namespace ProjectThreeAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> Update(AdminCardsUpdateRequest request)
         {
-            var (result, message) = await this._adminCardService.Update(request);
+            var (content, message) = await this._adminCardService.Update(request);
 
             var response = new Response<AdminCardsUpdateResponse>()
             {
-                Content = result,
+                Content = content,
                 Message = message
             };
 
@@ -63,11 +63,11 @@ namespace ProjectThreeAPI.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(AdminCardsDeleteRequest request)
         {
-            var (result, message) = await this._adminCardService.Delete(request);
+            var (content, message) = await this._adminCardService.Delete(request);
 
             var response = new Response<AdminCardsDeleteResponse>()
             {
-                Content = result,
+                Content = content,
                 Message = message
             };
 
