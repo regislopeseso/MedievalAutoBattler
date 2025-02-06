@@ -10,7 +10,7 @@ namespace MedievalAutoBattler.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        public required Npc Npc { get; set; }
+        public required Save Save {get; set;}
+        public Npc? Npc { get; set; }
     }
 }

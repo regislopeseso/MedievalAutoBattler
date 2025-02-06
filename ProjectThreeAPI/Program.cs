@@ -13,6 +13,7 @@ builder.Services.AddScoped<PlayerSavesService>();
 builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<PlayerCardsService>();
 builder.Services.AddScoped<PlayerDecksService>();
+builder.Services.AddScoped<BattlePlayersService>();
 builder.Services.AddScoped<BattleNpcsService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

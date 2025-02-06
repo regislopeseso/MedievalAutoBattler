@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
+using Microsoft.EntityFrameworkCore;
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Models.Entities;
@@ -16,70 +18,70 @@ namespace ProjectThreeAPI.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<string> Create(AdminCardsCreateRequest card)
+        public async Task<(AdminCardsCreateResponse?, string)> Create(AdminCardsCreateRequest request)
         {
-            var (isValid, message) = this.CreateIsValid(card);
+            var (isValid, message) = this.CreateIsValid(request);
 
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
             var exists = await this._daoDbContext
                 .Cards
-                .Where(a => a.Name == card.Name && a.IsDeleted == false)
-                .AnyAsync();
+                .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
+
             if (exists == true)
             {
-                return $"Error: this card already exists - {card.Name}";
+                return (null, $"Error: this card already exists - {request.Name}");
             }
 
             var newCard = new Card
             {
-                Name = card.Name,
-                Power = card.Power,
-                UpperHand = card.UpperHand,
-                Level = Helper.GetCardLevel(card.Power, card.UpperHand),
-                Type = card.Type,
+                Name = request.Name,
+                Power = request.Power,
+                UpperHand = request.UpperHand,
+                Level = Helper.GetCardLevel(request.Power, request.UpperHand),
+                Type = request.Type,
                 IsDeleted = false,
             };
 
             this._daoDbContext.Add(newCard);
-            await _daoDbContext.SaveChangesAsync();            
+            await _daoDbContext.SaveChangesAsync();
 
-            return "Create action successful";
+            return (null, "Create action successful");
         }
-        public (bool, string) CreateIsValid(AdminCardsCreateRequest card)
+        public (bool, string) CreateIsValid(AdminCardsCreateRequest request)
         {
-            if (card == null)
+            if (request == null)
             {
-                return (false, "Error: No information provided");
+                return (false, "Error: no information provided");
             }
 
-            if (string.IsNullOrEmpty(card.Name) == true)
+            if (string.IsNullOrEmpty(request.Name) == true)
             {
-                return (false, "Error: The Card's Name is mandatory");
+                return (false, "Error: the card's name is mandatory");
             }
 
-            if (card.Power < 0 || card.Power > 9)
+            if (request.Power < 0 || request.Power > 9)
             {
-                return (false, "Error: The Card's Power must be between 0 and 9");
+                return (false, "Error: the card's power must be between 0 and 9");
             }
 
-            if (card.UpperHand < 0 || card.UpperHand > 9)
+            if (request.UpperHand < 0 || request.UpperHand > 9)
             {
-                return (false, "Error: The Card's Upper Hand must be between 0 and 9");
+                return (false, "Error: the card's upper hand value must be between 0 and 9");
             }
 
-            if (Enum.IsDefined(typeof(CardType), card.Type) == false)
+            if (Enum.IsDefined(typeof(CardType), request.Type) == false)
             {
-                return (false, "Error: Invalid Card Type. Type must be None (0), Archer (1), Calvary (2), or Spearman (3).");
+                return (false, "Error: invalid vard type. The type must be one of the following: none (0), archer (1), calvary (2) or spearman (3)");
             }
 
             return (true, String.Empty);
         }
 
-        public async Task<(List<AdminCardsReadResponse>,string)> Read()
+        public async Task<(List<AdminCardsReadResponse>, string)> Read()
         {
             return (await this._daoDbContext
                 .Cards
@@ -99,89 +101,86 @@ namespace ProjectThreeAPI.Service
                 .ToListAsync(), "Read successful");
         }
 
-        public async Task<string> Update(AdminCardsUpdateRequest card)
+        public async Task<(AdminCardsUpdateResponse?, string)> Update(AdminCardsUpdateRequest request)
         {
-            var (isValid, message) = this.UpdateIsValid(card);
+            var (isValid, message) = this.UpdateIsValid(request);
 
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
-            var cardDb = await _daoDbContext
+            var cardDB = await this._daoDbContext
                 .Cards
-                .Where(a => a.Id == card.Id && a.IsDeleted == false)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
 
-
-            if (cardDb == null)
+            if (cardDB == null)
             {
-                return $"Error: Card not found: {card.Name}";
+                return (null, $"Error: card not found: {request.Name}");
             }
 
-            cardDb.Name = card.Name;
-            cardDb.Power = card.Power;
-            cardDb.UpperHand = card.UpperHand;
-            cardDb.Type = card.Type;
+            cardDB.Name = request.Name;
+            cardDB.Power = request.Power;
+            cardDB.UpperHand = request.UpperHand;
+            cardDB.Type = request.Type;
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return "Update action successful";
+            return (null, "Update action successful");
         }
 
         private (bool, string) UpdateIsValid(AdminCardsUpdateRequest card)
         {
             if (card == null)
             {
-                return (false, "Error: No information provided");
+                return (false, "Error: no information provided");
             }
 
             if (string.IsNullOrEmpty(card.Name) == true)
             {
-                return (false, "Error: The Card's Name is mandatory");
+                return (false, "Error: the card's name is mandatory");
             }
 
             if (card.Power < 0 || card.Power > 9)
             {
-                return (false, "Error: The Card's Power must be between 0 and 9");
+                return (false, "Error: the card's power must be between 0 and 9");
             }
 
             if (card.UpperHand < 0 || card.UpperHand > 9)
             {
-                return (false, "Error: The Card's Upper Hand must be between 0 and 9");
+                return (false, "Error: the card's upper hand value must be between 0 and 9");
             }
 
             if (Enum.IsDefined(typeof(CardType), card.Type) == false)
             {
-                return (false, "Error: Invalid card type. Type must be None (0), Archer (1), Calvary (2), or Spearman (3).");
+                return (false, "Error: invalid card type. The type must be one of the following: none (0), archer (1), calvary (2) or spearman (3)");
             }
 
             return (true, String.Empty);
         }
 
-        public async Task<string> Delete(int cardId)
+        public async Task<(AdminCardsDeleteResponse?, string)> Delete(AdminCardsDeleteRequest request)
         {
-            if (cardId <= 0)
+            if (request.CardId <= 0)
             {
-                return $"Error: Invalid Card Id. Card Ids cannot be empty, equal to or lesser than 0";
+                return (null, $"Error: invalid CardID");
             }
 
             var exists = await this._daoDbContext
                 .Cards
-                .Where(a => a.Id == cardId && a.IsDeleted == false)
-                .AnyAsync();
+                .AnyAsync(a => a.Id == request.CardId && a.IsDeleted == false);
 
             if (exists == false)
             {
-                return $"Error: Invalid Card Id, this Card does not exist or is already deleted";
+                return (null, $"Error: card not found");
             }
 
             await this._daoDbContext
                .Cards
-               .Where(u => u.Id == cardId)
+               .Where(u => u.Id == request.CardId)
                .ExecuteUpdateAsync(b => b.SetProperty(u => u.IsDeleted, true));
 
-            return "Delete action successful";
+            return (null, "Delete action successful");
         }
     }
 }

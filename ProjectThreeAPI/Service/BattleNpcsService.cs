@@ -1,4 +1,6 @@
-﻿using MedievalAutoBattler.Models.Entities;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
+using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using ProjectThreeAPI.Models.Entities;
 using System.Text.RegularExpressions;
@@ -13,24 +15,62 @@ namespace MedievalAutoBattler.Service
         {
             _daoDbContext = daoDbContext;
         }
-
-        public async Task<string> Create()
+       
+        public async Task<string> Create(BattleNpcsCreateRequest request)
         {
-            var random = new Random();
-
-            var npcDB = await this._daoDbContext.Npcs
-                .ToListAsync();
-    
-            var opponent = npcDB[random.Next(npcDB.Count)];
-
-            var newMatch = new Battle
+            if(request.BattleId <= 0)
             {
-                Npc = opponent,
-            };
+                return "Error: invalid Battle ID";
+            }
 
-            return "Opponent chosen successfully";
+            var battleDB = await this._daoDbContext
+                .Battles
+                .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+
+            if (battleDB == null)
+            {
+                return "Error: battle not found";
+            }
+
+
+            var npcDB = await this._daoDbContext
+                .Npcs
+                .ToListAsync();    
+
+            var random = new Random();
+            var randomOpponent = npcDB[random.Next(npcDB.Count)];
+
+            battleDB.Npc = randomOpponent;        
+
+            await _daoDbContext.SaveChangesAsync();
+
+            return "Random opponent chosen successfully";
         }
 
+        public async Task<(BattleNpcsReadResponse?, string)> Read(int battleId)
+        {
+            if (battleId <= 0)
+            {
+                return (null, "Error: invalid Battle Id");
+            }
+
+            var npcNameDB = await this._daoDbContext.Battles
+                .Where(a => a.Id == battleId)
+                .Select(a => a.Npc.Name)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(npcNameDB) == true)
+            {
+                return (null, "Error: invalid NPC");
+            }
+
+            var npcName = new BattleNpcsReadResponse
+            {
+                Name = npcNameDB
+            };
+
+            return (npcName, "Read successful");                
+        }     
 
     }
 }

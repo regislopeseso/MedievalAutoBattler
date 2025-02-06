@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
+using Microsoft.AspNetCore.Mvc;
 using ProjectThreeAPI.Models.Dtos.Request;
 using ProjectThreeAPI.Models.Dtos.Response;
 using ProjectThreeAPI.Service;
@@ -17,12 +19,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(AdminCardsCreateRequest card)
+        public async Task<IActionResult> Create(AdminCardsCreateRequest request)
         {
-            var message = await this._adminCardService.Create(card);
+            var (result, message) = await this._adminCardService.Create(request);
 
-            var response = new Response<string>
+            var response = new Response<AdminCardsCreateResponse>
             {
+                Content = result,
                 Message = message
             };
 
@@ -30,26 +33,27 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read()
+        public async Task<IActionResult> Read([FromQuery] AdminCardsReadRequest request)
         {
-            var (response, message) = await this._adminCardService.Read();
+            var (result, message) = await this._adminCardService.Read();
 
-            var result = new Response<List<AdminCardsReadResponse>>()
+            var response = new Response<List<AdminCardsReadResponse>>()
             {
-                Content = response,
+                Content = result,
                 Message = message
             };
 
-            return new JsonResult(result);
+            return new JsonResult(response);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(AdminCardsUpdateRequest card)
+        public async Task<IActionResult> Update(AdminCardsUpdateRequest request)
         {
-            var message = await this._adminCardService.Update(card);
+            var (result, message) = await this._adminCardService.Update(request);
 
-            var response = new Response<string>()
+            var response = new Response<AdminCardsUpdateResponse>()
             {
+                Content = result,
                 Message = message
             };
 
@@ -57,12 +61,13 @@ namespace ProjectThreeAPI.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int cardId)
+        public async Task<IActionResult> Delete(AdminCardsDeleteRequest request)
         {
-            var message = await this._adminCardService.Delete(cardId);
+            var (result, message) = await this._adminCardService.Delete(request);
 
-            var response = new Response<string>()
+            var response = new Response<AdminCardsDeleteResponse>()
             {
+                Content = result,
                 Message = message
             };
 
