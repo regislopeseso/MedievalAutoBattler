@@ -16,6 +16,7 @@ builder.Services.AddScoped<PlayerDecksService>();
 builder.Services.AddScoped<BattleSavesService>();
 builder.Services.AddScoped<BattleNpcsService>();
 builder.Services.AddScoped<BattlePlayersService>();
+builder.Services.AddScoped<BattleResultsService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
