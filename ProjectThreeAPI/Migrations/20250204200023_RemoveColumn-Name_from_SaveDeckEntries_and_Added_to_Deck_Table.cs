@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace ProjectThreeAPI.Migrations
+namespace MedievalAutoBattler.Migrations
 {
     /// <inheritdoc />
     public partial class RemoveColumnName_from_SaveDeckEntries_and_Added_to_Deck_Table : Migration

@@ -1,7 +1,7 @@
 ﻿
-using ProjectThreeAPI.Models.Enums;
+using MedievalAutoBattler.Models.Enums;
 
-namespace ProjectThreeAPI.Models.Dtos.Request
+namespace MedievalAutoBattler.Models.Dtos.Request
 {
     public class AdminCardsCreateRequest
     {

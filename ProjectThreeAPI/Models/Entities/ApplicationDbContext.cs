@@ -1,6 +1,5 @@
 ﻿using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Models.Entities;
 
 public class ApplicationDbContext : DbContext
 {

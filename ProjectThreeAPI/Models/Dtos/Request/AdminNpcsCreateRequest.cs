@@ -1,6 +1,6 @@
-﻿using ProjectThreeAPI.Models.Entities;
+﻿using MedievalAutoBattler.Models.Entities;
 
-namespace ProjectThreeAPI.Models.Dtos.Request
+namespace MedievalAutoBattler.Models.Dtos.Request
 {
     public class AdminNpcsCreateRequest
     {  

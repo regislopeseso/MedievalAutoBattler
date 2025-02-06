@@ -1,4 +1,4 @@
-﻿using ProjectThreeAPI.Models.Entities;
+﻿using MedievalAutoBattler.Models.Entities;
 
 namespace MedievalAutoBattler.Models.Dtos.Response
 {

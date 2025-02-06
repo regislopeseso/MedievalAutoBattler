@@ -1,9 +1,6 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
-using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Models.Entities;
-using System.Text.RegularExpressions;
 
 namespace MedievalAutoBattler.Service
 {
@@ -50,7 +47,7 @@ namespace MedievalAutoBattler.Service
         {
             if (request.BattleId <= 0)
             {
-                return (null, "Error: invalid Battle Id");
+                return (null, "Error: invalid B=battle Id");
             }
 
             var npcNameDB = await this._daoDbContext.Battles
@@ -60,15 +57,15 @@ namespace MedievalAutoBattler.Service
 
             if (string.IsNullOrEmpty(npcNameDB) == true)
             {
-                return (null, "Error: invalid NPC");
+                return (null, "Error: battle not found");
             }
 
-            var npcName = new BattleNpcsReadResponse
+            var content = new BattleNpcsReadResponse
             {
                 Name = npcNameDB
             };
 
-            return (npcName, "Read successful");                
+            return (content, "Read successful");                
         }    
     }
 }

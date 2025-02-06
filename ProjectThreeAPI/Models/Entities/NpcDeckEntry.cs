@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ProjectThreeAPI.Models.Entities
+namespace MedievalAutoBattler.Models.Entities
 {
     [Table("NpcDeckEntries")]
     public class NpcDeckEntry

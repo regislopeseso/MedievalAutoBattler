@@ -1,10 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Migrations;
-using ProjectThreeAPI.Models.Dtos.Request;
-using ProjectThreeAPI.Models.Entities;
-using System.Reflection;
 
 namespace MedievalAutoBattler.Service
 {
@@ -14,62 +11,66 @@ namespace MedievalAutoBattler.Service
 
         public PlayerDecksService(ApplicationDbContext daoDbContext)
         {
-            _daoDbContext = daoDbContext;
+            this._daoDbContext = daoDbContext;
         }
 
-        public async Task<string> Create(PlayerDecksCreateRequest deck)
+        public async Task<(PlayerDecksCreateResponse?, string)> Create(PlayerDecksCreateRequest request)
         {
-            var (isValid, message) = this.CreateIsValid(deck);
+            var (isValid, message) = this.CreateIsValid(request);
+
             if (isValid == false)
             {
-                return message;
+                return (null, message);
             }
 
-            var saveDB = await _daoDbContext.Saves
-                .Include(b => b.Decks)
-                .Where(a => a.Id == deck.SaveId)
-                .FirstOrDefaultAsync();
+            var saveDB = await this._daoDbContext
+                                   .Saves
+                                   .Include(b => b.Decks)
+                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId);
+
             if (saveDB == null)
             {
-                return "Error: invalid save ID";
+                return (null, "Error: invalid SaveId");
             }
 
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(deck.CardIds);
+            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+
             if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
             {
-                return ErrorMessage;
+                return (null, ErrorMessage);
             }
 
             var newDeck = new Deck
             {
-                Name = deck.Name,
+                Name = request.Name,
                 SaveDeckEntries = newSaveDeckEntries
-            };            
+            };
 
             saveDB.Decks.Add(newDeck);
+
             await this._daoDbContext.SaveChangesAsync();
 
-            return "Create Successful";
-        }        
+            return (null, "Create Successful");
+        }
 
-        private (bool, string) CreateIsValid(PlayerDecksCreateRequest deck)
+        private (bool, string) CreateIsValid(PlayerDecksCreateRequest request)
         {
-            if (deck == null)
+            if (request == null)
             {
                 return (false, "Error: no information was provided for creating a new Deck");
             }
 
-            if (string.IsNullOrEmpty(deck.Name) == true)
+            if (string.IsNullOrEmpty(request.Name) == true)
             {
-                return (false, "Error: the Deck's name is mandatory");
+                return (false, "Error: the deck's name is mandatory");
             }
 
-            if (deck.SaveId <= 0)
+            if (request.SaveId <= 0)
             {
-                return (false, "Error: saveId invalid");
+                return (false, "Error: SaveId invalid");
             }
 
-            if (deck.CardIds == null || deck.CardIds.Count == 0 || deck.CardIds.Count != 5)
+            if (request.CardIds == null || request.CardIds.Count == 0 || request.CardIds.Count != 5)
             {
                 return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
             }
@@ -77,84 +78,121 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
-        public async Task<string> Update(PlayerDecksUpdateRequest deck)
+        public async Task<(PlayerDecksUpdateResponse?, string)> Update(PlayerDecksUpdateRequest request)
         {
-            var deckDB = await this._daoDbContext.Decks
-                .Include(a => a.SaveDeckEntries)
-                .ThenInclude(a => a.Card)
-                .FirstOrDefaultAsync(a => a.Id == deck.Id);
+            var (isValid, message) = this.UpdateIsValid(request);
+
+            if (isValid == false)
+            {
+                return (null, message);
+            }
+
+            var deckDB = await this._daoDbContext
+                                   .Decks
+                                   .Include(a => a.SaveDeckEntries)
+                                   .ThenInclude(a => a.Card)
+                                   .FirstOrDefaultAsync(a => a.Id == request.DeckId);
 
             if (deckDB == null)
             {
-                return $"Error: Deck not found. Invalid DeckId";
-            }              
-
-            var oldCardIds = deckDB.SaveDeckEntries.Select(a => a.Id).ToList();
-            await this._daoDbContext.SaveDeckEntries
-                .Where(a => oldCardIds.Contains(a.CardId) && a.Deck.Id == deck.Id)
-                .ExecuteDeleteAsync();
-
-
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(deck.CardIds);
-            if(newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
-            {
-                return ErrorMessage;
+                return (null, $"Error: deck not found. Invalid DeckId");
             }
 
-            deckDB.Name = deck.Name;
+            var oldCardIds = deckDB.SaveDeckEntries.Select(a => a.Id).ToList();
+
+            await this._daoDbContext
+                      .SaveDeckEntries
+                      .Where(a => oldCardIds.Contains(a.CardId) && a.Deck.Id == request.DeckId)
+                      .ExecuteDeleteAsync();
+
+
+            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+
+            if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
+            {
+                return (null, ErrorMessage);
+            }
+
+            deckDB.Name = request.Name;
             deckDB.SaveDeckEntries = newSaveDeckEntries;
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return "Update successful";
+            return (null, "Update successful");
         }
 
-        internal async Task<string> Delete(int deckId)
+        private (bool, string) UpdateIsValid(PlayerDecksUpdateRequest request)
         {
-            if (deckId <= 0)
+            if (request == null)
             {
-                return $"Error: Invalid Deck ID, ID cannot be empty or equal/lesser than 0";
+                return (false, "Error: no information was provided for updating a deck");
+            }
+
+            if (string.IsNullOrEmpty(request.Name) == true)
+            {
+                return (false, "Error: the deck's name is mandatory");
+            }       
+
+            if (request.CardIds == null || request.CardIds.Count == 0 || request.CardIds.Count != 5)
+            {
+                return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+            }
+
+            return (true, String.Empty);
+        }
+
+        internal async Task<(PlayerDecksDeleteResponse?, string)> Delete(PlayerDecksDeleteRequest request)
+        {
+            if (request.DeckId <= 0)
+            {
+                return (null, $"Error: Invalid Deck ID, ID cannot be empty or equal/lesser than 0");
             }
 
             var exists = await this._daoDbContext
-                .Decks
-                .AnyAsync(a => a.Id == deckId && a.IsDeleted == false);
+                                   .Decks
+                                   .AnyAsync(a => a.Id == request.DeckId && a.IsDeleted == false);
 
             if (exists == false)
             {
-                return $"Error: Invalid Deck ID, the npc does not exist or is already deleted";
+                return (null, $"Error: Invalid Deck ID, the npc does not exist or is already deleted");
             }
 
-            await this._daoDbContext.Decks
-                .Where(a => a.Id == deckId)
-                .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+            await this._daoDbContext
+                      .Decks
+                      .Where(a => a.Id == request.DeckId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            return "Delete successful";
+            return (null, "Delete successful");
         }
 
-        private async Task<(List<SaveDeckEntry>, string)> GetNewDeck(List<int> cardIds)
+        private async Task<(List<SaveDeckEntry>?, string)> GetNewDeck(List<int> cardIds)
         {
             var cardsDB = await this._daoDbContext
-                .Cards
-                .Where(a => cardIds.Contains(a.Id))
-                .ToListAsync();
+                                    .Cards
+                                    .Where(a => cardIds.Contains(a.Id))
+                                    .ToListAsync();
+
             if (cardsDB == null || cardsDB.Count == 0)
             {
-                return ([], "Error: invalid card Ids");
+                return (null, "Error: invalid cardIds");
             }
 
             var uniqueCardIds = cardIds.Distinct().ToList().Count;
+
             if (uniqueCardIds != cardsDB.Count)
             {
-                var notFoundIds = cardIds.Distinct().ToList().Except(cardsDB.Select(a => a.Id).ToList());
-                return ([], $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
+                var notFoundIds = cardIds.Distinct()
+                                         .ToList()
+                                         .Except(cardsDB.Select(a => a.Id).ToList());
+
+                return (null, $"Error: invalid cardId: {string.Join(", ", notFoundIds)}");
             }
 
             var deckEntries = new List<SaveDeckEntry>();
 
             foreach (var id in cardIds)
             {
-                var newCard = cardsDB.Where(a => a.Id == id).FirstOrDefault();
+                var newCard = cardsDB.FirstOrDefault(a => a.Id == id);
 
                 if (newCard != null)
                 {

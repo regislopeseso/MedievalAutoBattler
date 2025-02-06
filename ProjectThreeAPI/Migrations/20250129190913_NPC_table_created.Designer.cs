@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ProjectThreeAPI.Migrations
+namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250129190913_NPC_table_created")]
@@ -23,7 +23,7 @@ namespace ProjectThreeAPI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,7 +60,7 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Npc", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -87,14 +87,14 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("Npcs");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Card", b =>
                 {
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Npc", null)
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Npc", null)
                         .WithMany("Hand")
                         .HasForeignKey("NpcId");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Npc", b =>
                 {
                     b.Navigation("Hand");
                 });

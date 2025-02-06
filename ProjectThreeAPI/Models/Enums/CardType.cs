@@ -1,4 +1,4 @@
-﻿namespace ProjectThreeAPI.Models.Enums
+﻿namespace MedievalAutoBattler.Models.Enums
 {
     public enum CardType
     {

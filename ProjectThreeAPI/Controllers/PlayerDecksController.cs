@@ -1,8 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
-using MedievalAutoBattler.Models.Entities;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
-using ProjectThreeAPI.Models.Dtos.Response;
 
 namespace MedievalAutoBattler.Controllers
 {
@@ -14,16 +13,17 @@ namespace MedievalAutoBattler.Controllers
 
         public PlayerDecksController(PlayerDecksService playerDecksService)
         {
-            _playerDecksService = playerDecksService;
+            this._playerDecksService = playerDecksService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PlayerDecksCreateRequest newDeck)
+        public async Task<IActionResult> Create(PlayerDecksCreateRequest request)
         {
-            var message = await this._playerDecksService.Create(newDeck);
+            var (content, message) = await this._playerDecksService.Create(request);
 
-            var response = new Response<string>
+            var response = new Response<PlayerDecksCreateResponse>
             {
+                Content = content,
                 Message = message
             };
 
@@ -31,12 +31,13 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PlayerDecksUpdateRequest deck)
+        public async Task<IActionResult> Update(PlayerDecksUpdateRequest request)
         {
-            var message = await this._playerDecksService.Update(deck);
+            var (content, message) = await this._playerDecksService.Update(request);
 
-            var response = new Response<string>
+            var response = new Response<PlayerDecksUpdateResponse>
             {
+                Content= content,
                 Message = message
             };
 
@@ -44,12 +45,13 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int deckId)
+        public async Task<IActionResult> Delete(PlayerDecksDeleteRequest request)
         {
-            var message = await this._playerDecksService.Delete(deckId);
+            var (content, message) = await this._playerDecksService.Delete(request);
 
-            var response = new Response<string>()
+            var response = new Response<PlayerDecksDeleteResponse>()
             {
+                Content = content,
                 Message = message
             };
 

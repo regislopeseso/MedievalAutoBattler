@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ProjectThreeAPI.Migrations
+namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250129192105_NPC_table_corrected")]
@@ -38,7 +38,7 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("CardNpc");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -70,7 +70,7 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("cards");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Npc", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -99,13 +99,13 @@ namespace ProjectThreeAPI.Migrations
 
             modelBuilder.Entity("CardNpc", b =>
                 {
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Card", null)
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Card", null)
                         .WithMany()
                         .HasForeignKey("HandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Npc", null)
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Npc", null)
                         .WithMany()
                         .HasForeignKey("NpcsId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace ProjectThreeAPI.Migrations
+namespace MedievalAutoBattler.Migrations
 {
     /// <inheritdoc />
     public partial class NPC_table_corrected : Migration

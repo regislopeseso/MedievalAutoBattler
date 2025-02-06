@@ -1,6 +1,6 @@
-﻿using ProjectThreeAPI.Models.Enums;
+﻿using MedievalAutoBattler.Models.Enums;
 
-namespace ProjectThreeAPI.Models.Dtos.Response
+namespace MedievalAutoBattler.Models.Dtos.Response
 {
     public class AdminCardsReadResponse
     { 

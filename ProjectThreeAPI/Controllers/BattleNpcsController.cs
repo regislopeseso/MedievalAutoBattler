@@ -1,10 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Service;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
-using ProjectThreeAPI.Models.Dtos.Response;
 
 namespace MedievalAutoBattler.Controllers
 {

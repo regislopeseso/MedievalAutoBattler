@@ -1,6 +1,7 @@
-﻿using MedievalAutoBattler.Models.Dtos.Response;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Models.Entities;
+using MedievalAutoBattler.Models.Entities;
 
 namespace MedievalAutoBattler.Service
 {
@@ -9,29 +10,29 @@ namespace MedievalAutoBattler.Service
         public readonly ApplicationDbContext _daoDbContext;
         public PlayerCardsService(ApplicationDbContext daoDbContext)
         {
-            _daoDbContext = daoDbContext;
+            this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(List<PlayerCardsReadResponse>?, string)> Read(int saveId)
+        public async Task<(List<PlayerCardsReadResponse>?, string)> Read(PlayerCardsReadRequest request)
         {
-            if (saveId <= 0)
+            if (request.SaveId <= 0)
             {
-                return (null, "Error: invalid Id");
+                return (null, "Error: invalid SaveId");
             }
 
 
             var collection = await this._daoDbContext.Decks
-                .Where(a => a.Save.Id == saveId)
-                .SelectMany(a => a.SaveDeckEntries)
-                .Select(a => a.Card)               
-                .ToListAsync();
+                                       .Where(a => a.Save.Id == request.SaveId)
+                                       .SelectMany(a => a.SaveDeckEntries)
+                                       .Select(a => a.Card)               
+                                       .ToListAsync();
 
             if (collection == null || collection.Count == 0)
             {
                 return (null, "Error: no cards found for this save.");
             }
 
-            var result = collection
+            var content = collection
                 .GroupBy(card => card.Id)
                 .Select(group => new PlayerCardsReadResponse
                 {
@@ -40,7 +41,7 @@ namespace MedievalAutoBattler.Service
                 })
                 .ToList();
 
-            return (result, "Read successful");
+            return (content, "Read successful");
         }
     }
 }

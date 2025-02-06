@@ -2,17 +2,9 @@
 using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.OpenApi.Any;
-using ProjectThreeAPI.Models.Dtos.Request;
-using ProjectThreeAPI.Models.Dtos.Response;
-using ProjectThreeAPI.Models.Entities;
-using ProjectThreeAPI.Utilities;
-using System.Linq;
-using System.Reflection.Emit;
-using static System.Net.WebRequestMethods;
+using MedievalAutoBattler.Utilities;
 
-namespace ProjectThreeAPI.Service
+namespace MedievalAutoBattler.Service
 {
     public class AdminNpcsService
     {
@@ -26,20 +18,23 @@ namespace ProjectThreeAPI.Service
         public async Task<(AdminNpcsCreateResponse?, string)> Create(AdminNpcsCreateRequest request)
         {
             var (isValid, message) = this.CreateIsValid(request);
+
             if (isValid == false)
             {
                 return (null, message);
             }
 
             var exists = await this._daoDbContext
-                .Npcs
-                .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
+                                   .Npcs
+                                   .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
+
             if (exists == true)
             {
                 return (null, $"Error: this NPC already exists - {request.Name}");
             }
 
             var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+
             if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
             {
                 return (null, ErrorMessage);
@@ -87,32 +82,33 @@ namespace ProjectThreeAPI.Service
 
         public async Task<(List<AdminNpcsReadResponse>, string)> Read()
         {
-            return (await this._daoDbContext
-                .Npcs
-                .AsNoTracking()
-                .Where(a => a.IsDeleted == false)
-                .Select(a => new AdminNpcsReadResponse
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    Description = a.Description,
-                    Deck = a.Deck
-                            .Select(b =>
-                            new AdminNpcReadResponse_Deck
-                            {
-                                Id = b.Id,
-                                Name = b.Card.Name,
-                                Power = b.Card.Power,
-                                UpperHand = b.Card.UpperHand,
-                                Level = b.Card.Level,
-                                Type = b.Card.Type,
-                            })
-                            .ToList(),
-                    Level = a.Level
-                })
-                .OrderBy(a => a.Level)
-                .ThenBy(a => a.Name)
-                .ToListAsync(), "Read Successful");
+            var content = await this._daoDbContext
+                              .Npcs
+                              .AsNoTracking()
+                              .Where(a => a.IsDeleted == false)
+                              .Select(a => new AdminNpcsReadResponse
+                              {
+                                  Id = a.Id,
+                                  Name = a.Name,
+                                  Description = a.Description,
+                                  Deck = a.Deck
+                                          .Select(b => new AdminNpcReadResponse_Deck
+                                          {
+                                            Id = b.Id,
+                                            Name = b.Card.Name,
+                                            Power = b.Card.Power,
+                                            UpperHand = b.Card.UpperHand,
+                                            Level = b.Card.Level,
+                                            Type = b.Card.Type,
+                                          })
+                                          .ToList(),
+                                  Level = a.Level
+                              })
+                              .OrderBy(a => a.Level)
+                              .ThenBy(a => a.Name)
+                              .ToListAsync();
+
+            return (content, "Read Successful");
         }
 
         public async Task<(AdminNpcsFlexUpdateResponse?, string)> FlexUpdate(AdminNpcsFlexUpdateRequest request)
@@ -132,7 +128,7 @@ namespace ProjectThreeAPI.Service
 
             if (npcDB == null)
             {
-                return (null, $"Npc not found: {request.Name}");
+                return (null, $"Error: NPC not found: {request.Name}");
             }
 
             if (string.IsNullOrEmpty(request.Name) == false)
@@ -155,6 +151,7 @@ namespace ProjectThreeAPI.Service
                 var oldIds = npcDB.Deck
                                   .Select(a => a.Card.Id)
                                   .ToList();
+
                 if (request.DeckChanges.Keys.All(id => oldIds.Contains(id)) == false)
                 {
                     return (null, "Error: the card to be replaced was not found");
@@ -164,6 +161,7 @@ namespace ProjectThreeAPI.Service
                                            .NpcDeckEntries
                                            .Select(a => a.CardId)
                                            .ToList();
+
                 if (request.DeckChanges.Values.All(id => availableCardIds.Contains(id)) == false)
                 {
                     return (null, "Error: the cardId provided leads to a non-existing card");
@@ -176,7 +174,7 @@ namespace ProjectThreeAPI.Service
                         this._daoDbContext
                             .NpcDeckEntries
                             .Where(a => a.Npc.Id == request.Id && a.Card.Id == oldId)
-                            .ExecuteUpdate(b => b.SetProperty(a => a.CardId, request.DeckChanges[oldId]));
+                            .ExecuteUpdate(a => a.SetProperty(b => b.CardId, request.DeckChanges[oldId]));
                     }
                 }
             }
@@ -280,12 +278,11 @@ namespace ProjectThreeAPI.Service
             return (true, String.Empty);
         }
 
-
         public async Task<(AdminNpcsDeleteResponse?, string)> Delete(AdminNpcsDeleteRequest request)
         {
             if (request.NpcId <= 0)
             {
-                return (null, $"Error: invalid NPC ID, ID cannot be empty or equal/lesser than 0");
+                return (null, $"Error: invalid NpcId");
             }
 
 
@@ -295,7 +292,7 @@ namespace ProjectThreeAPI.Service
 
             if (exists == false)
             {
-                return (null, $"Error: invalid NPC ID, the npc does not exist or is already deleted");
+                return (null, $"Error: NpcId not found");
             }
 
             await this._daoDbContext

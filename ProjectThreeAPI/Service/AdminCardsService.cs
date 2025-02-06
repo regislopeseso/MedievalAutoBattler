@@ -1,13 +1,11 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
+using MedievalAutoBattler.Models.Entities;
+using MedievalAutoBattler.Models.Enums;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Models.Dtos.Request;
-using ProjectThreeAPI.Models.Dtos.Response;
-using ProjectThreeAPI.Models.Entities;
-using ProjectThreeAPI.Models.Enums;
-using ProjectThreeAPI.Utilities;
+using MedievalAutoBattler.Utilities;
 
-namespace ProjectThreeAPI.Service
+namespace MedievalAutoBattler.Service
 {
     public class AdminCardsService
     {
@@ -73,7 +71,7 @@ namespace ProjectThreeAPI.Service
                 return (false, "Error: the card's upper hand value must be between 0 and 9");
             }
 
-            if (Enum.IsDefined(typeof(CardType), request.Type) == false)
+            if (Enum.IsDefined(request.Type) == false)
             {
                 return (false, "Error: invalid vard type. The type must be one of the following: none (0), archer (1), calvary (2) or spearman (3)");
             }
@@ -83,22 +81,25 @@ namespace ProjectThreeAPI.Service
 
         public async Task<(List<AdminCardsReadResponse>, string)> Read()
         {
-            return (await this._daoDbContext
-                .Cards
-                .AsNoTracking()
-                .Where(a => a.IsDeleted == false)
-                .Select(a => new AdminCardsReadResponse
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    Power = a.Power,
-                    UpperHand = a.UpperHand,
-                    Level = a.Level,
-                    Type = a.Type,
-                })
-                .OrderBy(a => a.Id)
-                .ThenBy(a => a.Name)
-                .ToListAsync(), "Read successful");
+            var content = await this._daoDbContext
+                                    .Cards
+                                    .AsNoTracking()
+                                    .Where(a => a.IsDeleted == false)
+                                    .Select(a => new AdminCardsReadResponse
+                                    {
+                                        Id = a.Id,
+                                        Name = a.Name,
+                                        Power = a.Power,
+                                        UpperHand = a.UpperHand,
+                                        Level = a.Level,
+                                        Type = a.Type,
+                                    })
+                                    .OrderBy(a => a.Id)
+                                    .ThenBy(a => a.Name)
+                                    .ToListAsync();
+
+
+            return (content, "Read successful");
         }
 
         public async Task<(AdminCardsUpdateResponse?, string)> Update(AdminCardsUpdateRequest request)
@@ -111,8 +112,8 @@ namespace ProjectThreeAPI.Service
             }
 
             var cardDB = await this._daoDbContext
-                .Cards
-                .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
+                                   .Cards
+                                   .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
 
             if (cardDB == null)
             {
@@ -176,9 +177,9 @@ namespace ProjectThreeAPI.Service
             }
 
             await this._daoDbContext
-               .Cards
-               .Where(u => u.Id == request.CardId)
-               .ExecuteUpdateAsync(b => b.SetProperty(u => u.IsDeleted, true));
+                      .Cards
+                      .Where(a => a.Id == request.CardId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
             return (null, "Delete action successful");
         }

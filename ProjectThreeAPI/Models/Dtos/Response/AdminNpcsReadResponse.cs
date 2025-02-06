@@ -1,6 +1,6 @@
-﻿using ProjectThreeAPI.Models.Entities;
+﻿using MedievalAutoBattler.Models.Entities;
 
-namespace ProjectThreeAPI.Models.Dtos.Response
+namespace MedievalAutoBattler.Models.Dtos.Response
 {
     public class AdminNpcsReadResponse
     {

@@ -1,7 +1,7 @@
-﻿using ProjectThreeAPI.Models.Dtos.Request;
-using ProjectThreeAPI.Models.Entities;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Entities;
 
-namespace ProjectThreeAPI.Utilities
+namespace MedievalAutoBattler.Utilities
 {
     public static class Helper
     {

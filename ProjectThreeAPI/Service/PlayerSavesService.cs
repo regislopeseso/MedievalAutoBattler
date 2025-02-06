@@ -1,7 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using ProjectThreeAPI.Models.Entities;
 
 namespace MedievalAutoBattler.Service
 {
@@ -14,42 +14,45 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<string> Create(PlayerSavesCreateRequest save)
+        public async Task<(PlayerSavesCreateResponse?, string)> Create(PlayerSavesCreateRequest request)
         {
-            var (isValid, message) = this.CreateIsValid(save);
+            var (isValid, message) = this.CreateIsValid(request);
+
             if (isValid == false)
             {
-                return message;
-            }                 
+                return (null, message);
+            }
+
             var newSave = new Save
             {
-                Name = save.Name,
+                Name = request.Name,
                 Decks = new List<Deck>
                 {
                     new Deck
                     {
                         Name = "Starting Deck",
-                        SaveDeckEntries = await GetNewDeck()
+                        SaveDeckEntries = await this.GetNewDeck()
                     }
                 },
             };
-
+          
             this._daoDbContext.Add(newSave);
+
             await this._daoDbContext.SaveChangesAsync();
 
-            return "Create successful";
+            return (null, "Create successful");
         }
 
-        private (bool, string) CreateIsValid(PlayerSavesCreateRequest save)
+        private (bool, string) CreateIsValid(PlayerSavesCreateRequest request)
         {
-            if (save == null)
+            if (request == null)
             {
-                return (false, "Error: no information provided");
+                return (false, "Error: no information was provided");
             }
 
-            if (string.IsNullOrEmpty(save.Name) == true)
+            if (string.IsNullOrEmpty(request.Name) == true)
             {
-                return (false, "Error: a Name must be provided");
+                return (false, "Error: a name must be provided");
             }
 
             return (true, String.Empty);
@@ -57,9 +60,9 @@ namespace MedievalAutoBattler.Service
         private async Task<List<SaveDeckEntry>> GetNewDeck()
         {
             var cardsDB = await this._daoDbContext
-              .Cards
-              .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
-              .ToListAsync();
+                                    .Cards
+                                    .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
+                                    .ToListAsync();
 
             if (cardsDB == null || cardsDB.Count == 0)
             {
@@ -69,12 +72,14 @@ namespace MedievalAutoBattler.Service
             var random = new Random();
             var totalCards = cardsDB.Count;
             var randomCards = new List<Card>();
+
             while (randomCards.Count < 5)
             {
                 randomCards.Add(cardsDB[random.Next(totalCards)]);
             }
 
             var newDeck = new List<SaveDeckEntry>();
+
             foreach (var card in randomCards)
             {
                 if (card != null)
@@ -85,6 +90,12 @@ namespace MedievalAutoBattler.Service
                     });
                 }
             }
+
+            if(newDeck == null || newDeck.Count == 0)
+            {
+                return [];
+            }
+
             return newDeck;
         }
     }

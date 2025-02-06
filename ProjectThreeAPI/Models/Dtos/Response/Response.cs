@@ -1,4 +1,4 @@
-﻿namespace ProjectThreeAPI.Models.Dtos.Response
+﻿namespace MedievalAutoBattler.Models.Dtos.Response
 {
     public class Response<T>
     {

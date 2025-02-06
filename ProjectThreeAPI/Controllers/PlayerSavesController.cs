@@ -1,7 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
-using ProjectThreeAPI.Models.Dtos.Response;
 
 namespace MedievalAutoBattler.Controllers
 {
@@ -16,12 +16,13 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PlayerSavesCreateRequest newSave)
+        public async Task<IActionResult> Create(PlayerSavesCreateRequest request)
         {
-            var message = await this._playerSavesService.Create(newSave);
+            var (content, message) = await this._playerSavesService.Create(request);
 
-            var response = new Response<string>
+            var response = new Response<PlayerSavesCreateResponse>
             {
+                Content = content,
                 Message = message,
             };
 

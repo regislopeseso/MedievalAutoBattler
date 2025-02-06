@@ -1,11 +1,9 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
+using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
-using ProjectThreeAPI.Models.Dtos.Request;
-using ProjectThreeAPI.Models.Dtos.Response;
-using ProjectThreeAPI.Service;
 
-namespace ProjectThreeAPI.Controllers
+namespace MedievalAutoBattler.Controllers
 {
     [ApiController]
     [Route("admin/npcs/[action]")]

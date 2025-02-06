@@ -1,4 +1,5 @@
-﻿using MedievalAutoBattler.Models.Dtos.Response;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service
@@ -8,27 +9,26 @@ namespace MedievalAutoBattler.Service
         private readonly ApplicationDbContext _daoDbContext;
         public PlayerStatsService(ApplicationDbContext daoDbContext)
         {
-            _daoDbContext = daoDbContext;
+            this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(PlayerStatsReadResponse?, string)> Read(int saveId)
+        public async Task<(PlayerStatsReadResponse?, string)> Read(PlayerStatsReadRequest request)
         {
-            if(saveId == 0)
+            if(request.SaveId == 0)
             {
-                return (null, "Error: informing a valid id is mandatory");
+                return (null, "Error: invalid SaveId");
             }
 
             var saveDB = await this._daoDbContext.Saves
-                .AsNoTracking()
-                .Where(a => a.Id == saveId && a.IsDeleted == false)
-                .FirstOrDefaultAsync();
+                                   .AsNoTracking()
+                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId && a.IsDeleted == false);
 
             if (saveDB == null)
             {
-                return (null, "Error: invalid id");
+                return (null, "Error: save not found");
             }
 
-            var stats = new PlayerStatsReadResponse
+            var content = new PlayerStatsReadResponse
             {
                 Name = saveDB.Name,
                 Gold = saveDB.Gold,
@@ -39,7 +39,7 @@ namespace MedievalAutoBattler.Service
                 PlayerLevel = saveDB.PlayerLevel
             };
 
-            return (stats, "Read successfull");
+            return (content, "Read successfull");
         }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ProjectThreeAPI.Migrations
+namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250130202743_modify-Card_Table_and_Npc_Table")]
@@ -24,7 +24,7 @@ namespace ProjectThreeAPI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Card", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -56,7 +56,7 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("cards");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.DeckEntry", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.DeckEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,7 +79,7 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("DeckEntries");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Npc", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -106,22 +106,22 @@ namespace ProjectThreeAPI.Migrations
                     b.ToTable("npcs");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.DeckEntry", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.DeckEntry", b =>
                 {
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Card", "Card")
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProjectThreeAPI.Models.Entities.Npc", null)
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Npc", null)
                         .WithMany("Deck")
                         .HasForeignKey("NpcId");
 
                     b.Navigation("Card");
                 });
 
-            modelBuilder.Entity("ProjectThreeAPI.Models.Entities.Npc", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Npc", b =>
                 {
                     b.Navigation("Deck");
                 });

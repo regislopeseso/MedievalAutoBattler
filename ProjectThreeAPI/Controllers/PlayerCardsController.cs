@@ -1,7 +1,7 @@
-﻿using MedievalAutoBattler.Models.Dtos.Response;
+﻿using MedievalAutoBattler.Models.Dtos.Request;
+using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
-using ProjectThreeAPI.Models.Dtos.Response;
 
 namespace MedievalAutoBattler.Controllers
 {
@@ -17,13 +17,13 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(int saveId)
+        public async Task<IActionResult> Read(PlayerCardsReadRequest request)
         {
-            var (result, message) = await this._playerCardsService.Read(saveId);
+            var (content, message) = await this._playerCardsService.Read(request);
 
             var response = new Response<List<PlayerCardsReadResponse>>()
             {
-                Content = result,
+                Content = content,
                 Message = message               
             };
 
