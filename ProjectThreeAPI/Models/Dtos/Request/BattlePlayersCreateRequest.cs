@@ -1,9 +1,8 @@
-﻿using MedievalAutoBattler.Models.Dtos.Request;
-
-namespace MedievalAutoBattler.Models.Dtos.Request
+﻿namespace MedievalAutoBattler.Models.Dtos.Request
 {
     public class BattlePlayersCreateRequest
     {
-        public int SaveId { get; set; }
+        public int BattleId {  get; set; }
+        public int DeckId {  get; set; }
     }
 }

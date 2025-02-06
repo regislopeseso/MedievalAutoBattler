@@ -11,6 +11,7 @@ namespace MedievalAutoBattler.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public required Save Save {get; set;}
+        public Deck? PlayerDeck { get; set;}
         public Npc? Npc { get; set; }
     }
 }

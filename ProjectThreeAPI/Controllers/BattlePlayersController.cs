@@ -1,6 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MedievalAutoBattler.Controllers
@@ -10,6 +11,7 @@ namespace MedievalAutoBattler.Controllers
     public class BattlePlayersController : ControllerBase
     {
         private readonly BattlePlayersService _battlePlayersService;
+
         public BattlePlayersController(BattlePlayersService battlePlayersService)
         {
             this._battlePlayersService = battlePlayersService;
@@ -28,5 +30,7 @@ namespace MedievalAutoBattler.Controllers
 
             return new JsonResult(response);
         }
+
+
     }
 }

@@ -16,30 +16,64 @@ namespace MedievalAutoBattler.Service
 
         public async Task<(BattlePlayersCreateResponse?, string)> Create(BattlePlayersCreateRequest request)
         {
-            if (request.SaveId <= 0)
+            var (isValid, message) = this.CreateIsValid(request);
+
+            if (isValid == false)
             {
-                return (null, "Error: invalid Save Id");
+                return (null, message);
             }
 
-            var saveDB = await this._daoDbContext
-                                   .Saves
-                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId);
-
-            if (saveDB == null)
+            var battleDB = await this._daoDbContext
+                                     .Battles
+                                     .Include(a => a.Save)
+                                     .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+            if (battleDB == null)
             {
-                return (null, "Error: save not found.");
+                return (null, "Error: battle not found");
             }
 
-            var newMatch = new Battle
+            var deckDB = await this._daoDbContext
+                                             .Saves
+                                             .Where(a => a.Id == battleDB.Save.Id)
+                                             .Select(a => a.Decks.Where(b => b.Id == request.DeckId).FirstOrDefault())
+                                             .FirstOrDefaultAsync();
+            if (deckDB == null)
             {
-                Save = saveDB,
-            };
+                return (null, "Error: deck not found");
+            }
 
-            this._daoDbContext.Add(newMatch);
+            battleDB.PlayerDeck = deckDB;
 
-            await this._daoDbContext.SaveChangesAsync();
+            //var deck = await this._daoDbContext
+            //                         .Battles
+            //                         .Where(a => a.Id == request.BattleId)
+            //                         .Include(a => a.Save)
+            //                         .ThenInclude(b => b.Decks)                                 
+            //                         .Select(a => a.Save.Decks.Where(b => b.Id == request.DeckId).FirstOrDefault())
+            //                         .FirstOrDefaultAsync();
 
-            return (null, "New battle started");
+            this._daoDbContext.SaveChanges();
+
+            return (null, "Deck chosen successfully");
+        }
+        public (bool, string) CreateIsValid(BattlePlayersCreateRequest request)
+        {
+            if (request == null)
+            {
+                return (false, "Error: no information provided");
+            }           
+
+            if (request.BattleId <= 0)
+            {
+                return (false, "Error: invalid BattleId");
+            }
+
+            if (request.DeckId <= 0)
+            {
+                return (false, "Error: invalid DeckId");
+            }
+
+            return (true, String.Empty);
         }
     }
 }
