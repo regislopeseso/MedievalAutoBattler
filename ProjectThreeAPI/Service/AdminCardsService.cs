@@ -47,7 +47,7 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext.Add(newCard);
             await _daoDbContext.SaveChangesAsync();
 
-            return (null, "Create action successful");
+            return (null, "Create successful");
         }
         public (bool, string) CreateIsValid(AdminCardsCreateRequest request)
         {
@@ -79,6 +79,46 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
+        public async Task<(AdminCardsCreateResponse?, string)> Populate(AdminCardsCreateRequest_popupate request)
+        {
+            var cardsPopulation = new List<Card>();
+
+            var miss = new Card
+            {
+                Name = "Miss",
+                Type = CardType.None,
+                IsDeleted = false
+
+            };
+            cardsPopulation.Add(miss);
+
+            foreach (var cardType in new[] { CardType.Archer, CardType.Cavalry, CardType.Spearman })
+            {
+                for (int power = 0; power < 10; power++)
+                {
+                    for (int upperHand = 0; upperHand < 10; upperHand++)
+                    {
+                        var newCard = new Card
+                        {
+                            Name = cardType.ToString() + " *" + power + "|" + upperHand + "*",
+                            Power = power,
+                            UpperHand = upperHand,
+                            Level = Helper.GetCardLevel(power, upperHand),
+                            Type = cardType,
+                            IsDeleted = false
+                        };
+                        cardsPopulation.Add(newCard);
+                    }
+                }
+            }
+
+            this._daoDbContext.AddRange(cardsPopulation);
+
+            await _daoDbContext.SaveChangesAsync();
+
+            return (null, "Populate successful");
+        }
+
         public async Task<(List<AdminCardsReadResponse>, string)> Read()
         {
             var content = await this._daoDbContext
@@ -97,7 +137,6 @@ namespace MedievalAutoBattler.Service
                                     .OrderBy(a => a.Id)
                                     .ThenBy(a => a.Name)
                                     .ToListAsync();
-
 
             return (content, "Read successful");
         }

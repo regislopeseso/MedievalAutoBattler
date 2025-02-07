@@ -129,7 +129,7 @@ namespace MedievalAutoBattler.Service
         {
             var cardFullPower = 0;
 
-            if (attackingType == CardType.Archer && defendingType == CardType.Spearman || attackingType == CardType.Calvary && defendingType == CardType.Archer || attackingType == CardType.Spearman && defendingType == CardType.Calvary)
+            if (attackingType == CardType.Archer && defendingType == CardType.Spearman || attackingType == CardType.Cavalry && defendingType == CardType.Archer || attackingType == CardType.Spearman && defendingType == CardType.Cavalry)
             {
                 cardFullPower = power + upperHand;
             }

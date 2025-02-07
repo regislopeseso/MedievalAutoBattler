@@ -4,7 +4,7 @@
     {
         None = 0,
         Archer = 1,   // > Spearman
-        Calvary = 2,  // > Archer
-        Spearman = 3, // > Calvary
+        Cavalry = 2,  // > Archer
+        Spearman = 3, // > Cavalry
     }
 }

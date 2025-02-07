@@ -30,6 +30,20 @@ namespace MedievalAutoBattler.Controllers
             return new JsonResult(response);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Populate(AdminCardsCreateRequest_popupate request)
+        {
+            var (content, message) = await this._adminCardService.Populate(request);
+
+            var response = new Response<AdminCardsCreateResponse>
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Read([FromQuery] AdminCardsReadRequest request)
         {
