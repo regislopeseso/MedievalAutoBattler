@@ -3,6 +3,9 @@ using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using MedievalAutoBattler.Utilities;
+using MedievalAutoBattler.Models.Enums;
+using System;
+using System.Reflection.Emit;
 
 namespace MedievalAutoBattler.Service
 {
@@ -80,6 +83,56 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
+
+        public async Task<(AdminNpcsCreateResponse?, string)> Populate(AdminNpcsCreateRequest_populate request)
+        {
+            var cardsDB = await this._daoDbContext.Cards.ToListAsync();
+            var npcsPopulation = new List<Npc>();
+            var random = new Random();
+
+            var count = 1;
+            var botCount = 0;
+            var step = 1;
+
+            while (count <= 10)
+            {
+                var validCardsLvlZero = cardsDB.Where(c => c.Level == 0).ToList(); // Select as cards that could form a deck lvl 1 
+                var deckCards = validCardsLvlZero.OrderBy(_ => random.Next()).Take(5).ToList(); // Select 5 random cards
+
+                var noobDeckEntry = new List<NpcDeckEntry>();
+                foreach (var card in deckCards)
+                {
+                    noobDeckEntry.Add(new NpcDeckEntry
+                    {
+                        Card = card,
+                    });
+                }
+
+                botCount++;
+                var npcLvlZero = new Npc
+                {
+                    Name = "BOT " + botCount,
+                    Description = "LvL*0*" + "|" + "*" + step + "*",
+                    Deck = noobDeckEntry,
+                    Level = Helper.GetNpcLevel(noobDeckEntry.Select(a => a.Card.Level).ToList()),
+                    IsDeleted = false
+                };
+                npcsPopulation.Add(npcLvlZero);
+                count++;
+                step++;
+            }
+
+            step = 1;
+
+            this._daoDbContext.AddRange(npcsPopulation);
+
+            await this._daoDbContext.SaveChangesAsync();
+
+            return (null, "Create successful");
+        }
+
+
+
         public async Task<(List<AdminNpcsReadResponse>, string)> Read()
         {
             var content = await this._daoDbContext
@@ -94,12 +147,12 @@ namespace MedievalAutoBattler.Service
                                   Deck = a.Deck
                                           .Select(b => new AdminNpcReadResponse_Deck
                                           {
-                                            Id = b.Id,
-                                            Name = b.Card.Name,
-                                            Power = b.Card.Power,
-                                            UpperHand = b.Card.UpperHand,
-                                            Level = b.Card.Level,
-                                            Type = b.Card.Type,
+                                              Id = b.Id,
+                                              Name = b.Card.Name,
+                                              Power = b.Card.Power,
+                                              UpperHand = b.Card.UpperHand,
+                                              Level = b.Card.Level,
+                                              Type = b.Card.Type,
                                           })
                                           .ToList(),
                                   Level = a.Level

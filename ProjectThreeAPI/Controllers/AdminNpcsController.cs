@@ -30,6 +30,20 @@ namespace MedievalAutoBattler.Controllers
             return new JsonResult(response);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Populate(AdminNpcsCreateRequest_populate request)
+        {
+            var (content, message) = await this._adminNpcService.Populate(request);
+
+            var response = new Response<AdminNpcsCreateResponse>
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Read(AdminNpcsReadRequest request)
         {
