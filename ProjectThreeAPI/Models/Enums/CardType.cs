@@ -3,8 +3,8 @@
     public enum CardType
     {
         None = 0,
-        Archer = 1,
-        Calvary = 2,
-        Spearman = 3,
+        Archer = 1,   // > Spearman
+        Calvary = 2,  // > Archer
+        Spearman = 3, // > Calvary
     }
 }
