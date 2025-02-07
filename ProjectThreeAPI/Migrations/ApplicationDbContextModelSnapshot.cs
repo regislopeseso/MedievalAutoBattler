@@ -32,11 +32,15 @@ namespace MedievalAutoBattler.Migrations
                     b.Property<int?>("NpcId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PlayerDeckId")
+                    b.Property<int?>("PlayerDeckId")
                         .HasColumnType("int");
 
                     b.Property<int>("SaveId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Winner")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -225,9 +229,7 @@ namespace MedievalAutoBattler.Migrations
 
                     b.HasOne("MedievalAutoBattler.Models.Entities.Deck", "PlayerDeck")
                         .WithMany()
-                        .HasForeignKey("PlayerDeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PlayerDeckId");
 
                     b.HasOne("MedievalAutoBattler.Models.Entities.Save", "Save")
                         .WithMany()

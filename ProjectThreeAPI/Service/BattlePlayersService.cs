@@ -44,15 +44,15 @@ namespace MedievalAutoBattler.Service
 
             battleDB.PlayerDeck = deckDB;
 
-            //var deck = await this._daoDbContext
-            //                         .Battles
-            //                         .Where(a => a.Id == request.BattleId)
-            //                         .Include(a => a.Save)
-            //                         .ThenInclude(b => b.Decks)                                 
-            //                         .Select(a => a.Save.Decks.Where(b => b.Id == request.DeckId).FirstOrDefault())
-            //                         .FirstOrDefaultAsync();
+            var deck = await this._daoDbContext
+                                     .Battles
+                                     .Where(a => a.Id == request.BattleId)
+                                     .Include(a => a.Save)
+                                     .ThenInclude(b => b.Decks)
+                                     .Select(a => a.Save.Decks.Where(b => b.Id == request.DeckId).FirstOrDefault())
+                                     .FirstOrDefaultAsync();
 
-            this._daoDbContext.SaveChanges();
+            this._daoDbContext.SaveChanges();        
 
             return (null, "Deck chosen successfully");
         }
