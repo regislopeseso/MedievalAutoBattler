@@ -17,6 +17,7 @@ builder.Services.AddScoped<BattleSavesService>();
 builder.Services.AddScoped<BattleNpcsService>();
 builder.Services.AddScoped<BattlePlayersService>();
 builder.Services.AddScoped<BattleResultsService>();
+builder.Services.AddScoped<DeckBoostersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
