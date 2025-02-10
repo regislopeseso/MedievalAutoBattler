@@ -31,9 +31,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Populate(AdminNpcsCreateRequest_populate request)
+        public async Task<IActionResult> Seed(AdminNpcsCreateRequest_populate request)
         {
-            var (content, message) = await this._adminNpcService.Populate(request);
+            var (content, message) = await this._adminNpcService.Seed(request);
 
             var response = new Response<AdminNpcsCreateResponse>
             {
@@ -47,7 +47,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpGet]
         public async Task<IActionResult> Read(AdminNpcsReadRequest request)
         {
-            var (content, message) = await this._adminNpcService.Read();
+            var (content, message) = await this._adminNpcService.Read(request);
 
             var response = new Response<List<AdminNpcsReadResponse>>()
             {

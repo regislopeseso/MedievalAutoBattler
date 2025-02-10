@@ -6,12 +6,17 @@ using MedievalAutoBattler.Utilities;
 using MedievalAutoBattler.Models.Enums;
 using System;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Runtime.Intrinsics.Arm;
+using System.Net.Sockets;
+using System.Xml;
 
 namespace MedievalAutoBattler.Service
 {
     public class AdminNpcsService
     {
-        private readonly ApplicationDbContext _daoDbContext;
+        private readonly ApplicationDbContext _daoDbContext;        
 
         public AdminNpcsService(ApplicationDbContext daoDBcontext)
         {
@@ -83,83 +88,326 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
-
-        public async Task<(AdminNpcsCreateResponse?, string)> Populate(AdminNpcsCreateRequest_populate request)
-        {
+        public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_populate request)
+        {            
             var cardsDB = await this._daoDbContext.Cards.ToListAsync();
-            var npcsPopulation = new List<Npc>();
-            var random = new Random();
+            var npcsSeed = new List<Npc>();
 
-            var count = 1;
-            var botCount = 0;
-            var step = 1;
-
-            while (count <= 10)
+            for (int level = 0; level <= 9; level++)
             {
-                var validCardsLvlZero = cardsDB.Where(c => c.Level == 0).ToList(); // Select as cards that could form a deck lvl 1 
-                var deckCards = validCardsLvlZero.OrderBy(_ => random.Next()).Take(5).ToList(); // Select 5 random cards
-
-                var noobDeckEntry = new List<NpcDeckEntry>();
-                foreach (var card in deckCards)
-                {
-                    noobDeckEntry.Add(new NpcDeckEntry
-                    {
-                        Card = card,
-                    });
-                }
-
-                botCount++;
-                var npcLvlZero = new Npc
-                {
-                    Name = "BOT " + botCount,
-                    Description = "LvL*0*" + "|" + "*" + step + "*",
-                    Deck = noobDeckEntry,
-                    Level = Helper.GetNpcLevel(noobDeckEntry.Select(a => a.Card.Level).ToList()),
-                    IsDeleted = false
-                };
-                npcsPopulation.Add(npcLvlZero);
-                count++;
-                step++;
+                this._daoDbContext.AddRange(GetNpcs(level, cardsDB));
             }
-
-            step = 1;
-
-            this._daoDbContext.AddRange(npcsPopulation);
 
             await this._daoDbContext.SaveChangesAsync();
 
             return (null, "Create successful");
         }
-
-
-
-        public async Task<(List<AdminNpcsReadResponse>, string)> Read()
+        private List<Npc> GetNpcs(int level, List<Card> cardsDB)
         {
-            var content = await this._daoDbContext
+            var random = new Random();
+            int CountNpcs = 0;
+
+            if (level == 0 || level == 9)
+            {
+                var countBotsLvlZero = 0;
+                var countBotsLvlNine = 0;
+
+                // Creating a list that will contain 10 NPCs of cardLvl 0 or cardLvl 9:
+                var npcs = new List<Npc>();
+
+                while (npcs.Count < 10)
+                {
+                    // Filtering all cards having cardLvl iguals to 0 or 9 (currently contains 4 cards npcLvl 0 or 10 npcLvl 9):
+                    var cardsFiltered = cardsDB.Where(a => a.Level == level).ToList();
+
+                    // Obtaining one random card out of the list of filtered cards
+                    var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+
+                    // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
+                    var validNpcDeckEntries = new List<NpcDeckEntry>();
+                    validNpcDeckEntries.Add
+                    (
+                        new NpcDeckEntry
+                        {
+                            Card = card
+                        }
+                    );
+
+                    // Creating a new npc with 5 cards (npcLvl 0 or npcLvl 9) and adding it to a list of new NPCs:          
+                    var npcName = "";
+                    var npcDescription = "";
+                    var npcLvl = Helper.GetNpcLevel(validNpcDeckEntries.Select(a => a.Card.Level).ToList());
+                    if (level == 0)
+                    {
+                        countBotsLvlZero++;
+                        npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlZero;
+                        npcDescription = "(0, 0, 0, 0, 0)";
+                    }
+                    if (level == 9)
+                    {
+                        countBotsLvlNine++;
+                        npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlNine;
+                        npcDescription = "(9, 9, 9, 9, 9)";
+                    }
+                    npcs.Add(new Npc
+                    {
+                        Name = npcName,
+                        Description = npcDescription,
+                        Deck = validNpcDeckEntries,
+                        Level = npcLvl,
+                        IsDeleted = false,
+                    });
+
+
+                    //This while loop will stop when the list of NPCs has 10 NPCs
+                }
+
+                return npcs;
+            }
+            else if (level == 1)
+            {
+                var npcs = new List<Npc>();
+                var countBotsLvlOne = 0;
+                var count = 1;
+
+                while (count <= 2)
+                {
+                    // Obtaining the lists of all unique sequences
+                    // (for cardLvl 1 there are 5 unique possible combinations):
+                    for (int i = 8; i <= 12; i++)
+                    {
+                        // Obtaining the list of all 5 unique sequence for cardLvl 1)
+                        var levelSequence = Helper.GetPowerSequence(level, i);
+
+                        // Criating a new list of valid NPC deck entries:
+                        var validNpcDeckEntries = new List<NpcDeckEntry>();
+
+                        // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                        foreach (var cardLvl in levelSequence)
+                        {
+                            // Filtering all cards whose cardLvl is 1:
+                            var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
+
+                            // Obtaining one random card out of the list of filtered cards
+                            var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+
+                            // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
+                            validNpcDeckEntries.Add
+                            (
+                                new NpcDeckEntry
+                                {
+                                    Card = card
+                                }
+                            );
+                        }
+
+                        // Creating a new npc with 5 cards npcLvl 1 and adding it to a list of new NPCs:
+                        countBotsLvlOne++;
+                        var npcLvl = Helper.GetNpcLevel(validNpcDeckEntries.Select(a => a.Card.Level).ToList());
+                        var npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlOne;
+                        npcs.Add(new Npc
+                        {
+                            Name = npcName,
+                            Description = "( " + string.Join(", ", levelSequence) + " )",
+                            Deck = validNpcDeckEntries,
+                            Level = npcLvl,
+                            IsDeleted = false,
+                        });
+
+                    }
+                    //This while loop will stop when the count is 2.                       
+                    count++;
+                }
+
+                return npcs;
+            }
+            else if (level == 8)
+            {
+                var npcs = new List<Npc>();
+                var countBotsLvlEight = 0;
+                var count = 1;
+
+
+                while (count <= 4)
+                {
+                    // Obtaining the lists of all unique sequences
+                    // (for cardLvl 8 there are 3 unique possible combinations):
+                    for (int i = 5; i <= 12; i++)
+                    {
+                        if (i == 5 || i == 7 || i == 12)
+                        {
+                            // Obtaining the list of all 3 unique sequence for cardLvl 8)
+                            var levelSequence = Helper.GetPowerSequence(level, i);
+
+                            // Criating a new list of valid NPC deck entries:
+                            var validNpcDeckEntries = new List<NpcDeckEntry>();
+
+                            // Obtaing a random cards of cardLvl corresponding to its position in the sequence:
+                            foreach (var cardLvl in levelSequence)
+                            {
+                                // Filtering all cards whose cardLvl is 8:
+                                var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
+
+                                // Obtaining one random card out of the list of filtered cards
+                                var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+
+                                // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
+                                validNpcDeckEntries.Add
+                                (
+                                    new NpcDeckEntry
+                                    {
+                                        Card = card
+                                    }
+                                );
+                            }
+
+                            // Creating a new npc with 5 cards npcLvl 1 and adding it to a list of new NPCs:                        
+                            countBotsLvlEight++;
+                            var npcLvl = Helper.GetNpcLevel(validNpcDeckEntries.Select(a => a.Card.Level).ToList());
+                            var npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlEight;
+                            npcs.Add(new Npc
+                            {
+                                Name = npcName,
+                                Description = "( " + string.Join(", ", levelSequence) + " )",
+                                Deck = validNpcDeckEntries,
+                                Level = npcLvl,
+                                IsDeleted = false,
+                            });
+                        }
+                    }
+
+                    count++;
+                    //This while loop will stop when count is 4, since there 3 possible sequences looping 4 times will result in 12 npcs. 
+                }
+
+                //Returns only the first 10 npcs
+                return npcs.Take(10).ToList();
+            }
+            else //(cardLvl != 0 && cardLvl != 1 && cardLvl != 8 && cardLvl != 9)
+            {
+                var countBotsLvlTwo = 0;
+                var countBotsLvlThree = 0;
+                var countBotsLvlFour = 0;
+                var countBotsLvlFive = 0;
+                var countBotsLvlSix = 0;
+                var countBotsLvlSeven = 0;
+
+                var validDecks = new List<List<NpcDeckEntry>>();
+                var npcs = new List<Npc>();
+
+                // Obtaining the lists of all unique sequences
+                // (for cardLvl 2 up to 7 there are 12 unique possible combinations):
+                for (int i = 1; i <= 12; i++)
+                {
+                    // Criating a new list of valid NPC deck entries:
+                    var validNpcDeckEntries = new List<NpcDeckEntry>();
+
+                    //ex.: cardLvl == 6 and  i == 1 => (4, 4, 6, 8, 8 )
+                    var levelSequence = Helper.GetPowerSequence(level, i);
+
+                    // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                    foreach (var cardLvl in levelSequence)
+                    {
+                        // Filtering all cards by cardLvl (2, 3, 4, 5, 6 or 7):
+                        var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
+
+                        // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                        var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+
+                        // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
+                        validNpcDeckEntries.Add
+                        (
+                            new NpcDeckEntry
+                            {
+                                Card = card
+                            }
+                        );
+                    }
+
+                    // Creating a new npc with 5 cards and adding it to a list of new NPCs:   
+                    var npcName = "";
+                    var npcLvl = Helper.GetNpcLevel(validNpcDeckEntries.Select(a => a.Card.Level).ToList());
+
+                    switch (level)
+                    {
+                        case 2:
+                            countBotsLvlTwo++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlTwo;
+                            break;
+                        case 3:
+                            countBotsLvlThree++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlThree;
+                            break;
+                        case 4:
+                            countBotsLvlFour++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlFour;
+                            break;
+                        case 5:
+                            countBotsLvlFive++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlFive;
+                            break;
+                        case 6:
+                            countBotsLvlSix++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlSix;
+                            break;
+                        case 7:
+                            countBotsLvlSeven++;
+                            npcName = "NPC-LVL" + npcLvl + "-" + countBotsLvlSeven;
+                            break;
+                    }
+
+                    npcs.Add(new Npc
+                    {
+                        Name = npcName,
+                        Description = "( " + string.Join(", ", levelSequence) + " )",
+                        Deck = validNpcDeckEntries,
+                        Level = npcLvl,
+                        IsDeleted = false,
+                    });
+
+                    // By the end of this for loop, there will be 12 npcs                  
+                }
+
+                // Returns 10 random npcs out of the list of 12: 
+                return npcs.OrderBy(a => random.Next()).Take(10).ToList(); ;
+            }
+        }
+
+        public async Task<(List<AdminNpcsReadResponse>, string)> Read(AdminNpcsReadRequest request)
+        {
+            var contentQueriable = this._daoDbContext
                               .Npcs
                               .AsNoTracking()
-                              .Where(a => a.IsDeleted == false)
-                              .Select(a => new AdminNpcsReadResponse
-                              {
-                                  Id = a.Id,
-                                  Name = a.Name,
-                                  Description = a.Description,
-                                  Deck = a.Deck
-                                          .Select(b => new AdminNpcReadResponse_Deck
-                                          {
-                                              Id = b.Id,
-                                              Name = b.Card.Name,
-                                              Power = b.Card.Power,
-                                              UpperHand = b.Card.UpperHand,
-                                              Level = b.Card.Level,
-                                              Type = b.Card.Type,
-                                          })
-                                          .ToList(),
-                                  Level = a.Level
-                              })
-                              .OrderBy(a => a.Level)
-                              .ThenBy(a => a.Name)
-                              .ToListAsync();
+                              .Where(a => a.IsDeleted == false);
+
+
+            if (request.startId.HasValue && request.endId.HasValue)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Id >= request.startId && a.Id <= request.endId);
+            }
+
+            var content = await contentQueriable
+                .Select(a => new AdminNpcsReadResponse
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description,
+                    Deck = a.Deck
+                        .Select(b => new AdminNpcReadResponse_Deck
+                        {
+                            Id = b.Id,
+                            Name = b.Card.Name,
+                            Power = b.Card.Power,
+                            UpperHand = b.Card.UpperHand,
+                            Level = b.Card.Level,
+                            Type = b.Card.Type,
+                        })
+                        .ToList(),
+                    Level = a.Level
+                })
+                .OrderBy(a => a.Level)
+                .ThenBy(a => a.Name)
+                .ToListAsync();
 
             return (content, "Read Successful");
         }
