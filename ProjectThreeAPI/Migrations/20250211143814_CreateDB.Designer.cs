@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250211122924_Updated")]
-    partial class Updated
+    [Migration("20250211143814_CreateDB")]
+    partial class CreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,9 @@ namespace MedievalAutoBattler.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsFinished")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("NpcId")
                         .HasColumnType("int");
@@ -169,6 +172,12 @@ namespace MedievalAutoBattler.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AllCardsCollectedTrophy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("AllNpcsDefeatedTrophy")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("CountBoosters")
                         .HasColumnType("int");
