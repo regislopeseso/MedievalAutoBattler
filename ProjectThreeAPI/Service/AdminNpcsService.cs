@@ -16,7 +16,7 @@ namespace MedievalAutoBattler.Service
 {
     public class AdminNpcsService
     {
-        private readonly ApplicationDbContext _daoDbContext;        
+        private readonly ApplicationDbContext _daoDbContext;
 
         public AdminNpcsService(ApplicationDbContext daoDBcontext)
         {
@@ -89,7 +89,7 @@ namespace MedievalAutoBattler.Service
         }
 
         public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_populate request)
-        {            
+        {
             var cardsDB = await this._daoDbContext.Cards.ToListAsync();
             var npcsSeed = new List<Npc>();
 
@@ -120,18 +120,21 @@ namespace MedievalAutoBattler.Service
                     // Filtering all cards having cardLvl iguals to 0 or 9 (currently contains 4 cards npcLvl 0 or 10 npcLvl 9):
                     var cardsFiltered = cardsDB.Where(a => a.Level == level).ToList();
 
-                    // Obtaining one random card out of the list of filtered cards
-                    var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
-
-                    // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                     var validNpcDeckEntries = new List<NpcDeckEntry>();
-                    validNpcDeckEntries.Add
-                    (
-                        new NpcDeckEntry
-                        {
-                            Card = card
-                        }
-                    );
+                    for (int countCards = 0; countCards < 5; countCards++)
+                    {
+                        // Obtaining one random card out of the list of filtered cards
+                        var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
+
+                        // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
+                        validNpcDeckEntries.Add
+                        (
+                            new NpcDeckEntry
+                            {
+                                Card = card
+                            }
+                        );
+                    }
 
                     // Creating a new npc with 5 cards (npcLvl 0 or npcLvl 9) and adding it to a list of new NPCs:          
                     var npcName = "";
@@ -157,7 +160,6 @@ namespace MedievalAutoBattler.Service
                         Level = npcLvl,
                         IsDeleted = false,
                     });
-
 
                     //This while loop will stop when the list of NPCs has 10 NPCs
                 }

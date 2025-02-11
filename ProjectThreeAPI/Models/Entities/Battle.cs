@@ -14,6 +14,7 @@ namespace MedievalAutoBattler.Models.Entities
         public required Save Save {get; set;}
         public Deck? PlayerDeck { get; set; }
         public Npc? Npc { get; set; }
-        public string Winner { get; set; } = "teste";
+        public string? Winner { get; set; }
+        public bool IsFinished { get; set; } = false;
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request
 {
-    public class BattleResultsReadRequest
+    public class BattleResultsCreateRequest
     {
         public int BattleId { get; set; }
     }

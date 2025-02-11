@@ -39,6 +39,7 @@ namespace MedievalAutoBattler.Service
                     Card = group.First(),
                     Count = group.Count()
                 })
+                .OrderByDescending(a => a.Card.Level)
                 .ToList();
 
             return (content, "Read successful");

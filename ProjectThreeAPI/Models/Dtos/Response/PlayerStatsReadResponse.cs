@@ -9,5 +9,7 @@
         public int CountDefeats { get; set; }
         public int CountBoosters { get; set; }
         public int PlayerLevel { get; set; }
+        public bool AllCardsCollectedTrophy { get; set; }
+        public bool AllNpcsDefeatedTrophy { get; set; }
     }
 }

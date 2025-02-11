@@ -188,7 +188,7 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: invalid cardId: {string.Join(", ", notFoundIds)}");
             }
 
-            var deckEntries = new List<SaveDeckEntry>();
+            var saveDeckEntries = new List<SaveDeckEntry>();
 
             foreach (var id in cardIds)
             {
@@ -196,14 +196,14 @@ namespace MedievalAutoBattler.Service
 
                 if (newCard != null)
                 {
-                    deckEntries.Add(new SaveDeckEntry
+                    saveDeckEntries.Add(new SaveDeckEntry
                     {
                         Card = newCard,
                     });
                 }
             }
 
-            return (deckEntries, string.Empty);
+            return (saveDeckEntries, string.Empty);
         }
     }
 }

@@ -19,6 +19,20 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Create(BattleResultsCreateRequest request)
+        {
+            var (content, message) = await this._battleResultsService.Create(request);
+
+            var response = new Response<BattleResultsCreateResponse>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+
         public async Task<IActionResult> Read(BattleResultsReadRequest request)
         {
             var (content, message) = await this._battleResultsService.Read(request);

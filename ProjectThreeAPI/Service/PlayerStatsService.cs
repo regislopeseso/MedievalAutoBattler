@@ -36,7 +36,9 @@ namespace MedievalAutoBattler.Service
                 CountVictories = saveDB.CountVictories,
                 CountDefeats = saveDB.CountDefeats,
                 CountBoosters = saveDB.CountBoosters,
-                PlayerLevel = saveDB.PlayerLevel
+                PlayerLevel = saveDB.PlayerLevel,
+                AllCardsCollectedTrophy = saveDB.AllCardsCollectedTrophy,
+                AllNpcsDefeatedTrophy = saveDB.AllNpcsDefeatedTrophy
             };
 
             return (content, "Read successfull");

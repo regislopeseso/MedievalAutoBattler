@@ -21,5 +21,8 @@ namespace MedievalAutoBattler.Models.Entities
         public required List<Deck> Decks { get; set; }
 
         public bool IsDeleted { get; set; } = false;
+
+        public bool AllCardsCollectedTrophy { get; set; } = false;
+        public bool AllNpcsDefeatedTrophy { get; set; } = false;
     }
 }

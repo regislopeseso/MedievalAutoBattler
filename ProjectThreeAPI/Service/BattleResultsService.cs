@@ -14,8 +14,13 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(BattleResultsReadResponse?, string)> Read(BattleResultsReadRequest request)
+        public async Task<(BattleResultsCreateResponse?, string)> Create(BattleResultsCreateRequest request)
         {
+            if(request.BattleId <= 0)
+            {
+                return (null, "Error: invalid BattleId");
+            }
+
             var battleDB = await this._daoDbContext
                                  .Battles
                                  .Include(a => a.Npc)
@@ -27,6 +32,15 @@ namespace MedievalAutoBattler.Service
                                  .ThenInclude(d => d.Card)
                                  .FirstOrDefaultAsync(a => a.Id == request.BattleId);
 
+            if (battleDB == null)
+            {
+                return (null, "Error: battle not found");
+            }
+            if(battleDB.IsFinished == true)
+            {
+                return (null, "Error: this battle is available only for reading");
+            }
+
             var saveDB = battleDB.Save;
             var playerDeck = battleDB.PlayerDeck;
             var playerCardsDB = playerDeck.SaveDeckEntries.Select(a => a.Card).ToList();
@@ -36,11 +50,11 @@ namespace MedievalAutoBattler.Service
             var npcCardsDB = npcDeck.Select(a => a.Card).ToList();
 
             #region Como ficaram as cartas na mesa (5x5)
-            var npcCards = new List<BattleResultsReadResponse_Card>();
+            var npcCards = new List<BattleResultsCreateResponse_Card>();
             foreach (var card in npcCardsDB)
             {
                 npcCards.Add(
-                    new BattleResultsReadResponse_Card
+                    new BattleResultsCreateResponse_Card
                     {
                         Name = card.Name,
                         Power = card.Power,
@@ -50,11 +64,11 @@ namespace MedievalAutoBattler.Service
                     });
             }
 
-            var playerCards = new List<BattleResultsReadResponse_Card>();
+            var playerCards = new List<BattleResultsCreateResponse_Card>();
             foreach (var card in playerCardsDB)
             {
                 playerCards.Add(
-                    new BattleResultsReadResponse_Card
+                    new BattleResultsCreateResponse_Card
                     {
                         Name = card.Name,
                         Power = card.Power,
@@ -64,14 +78,14 @@ namespace MedievalAutoBattler.Service
                     });
             }
 
-            var content = new BattleResultsReadResponse();
+            var content = new BattleResultsCreateResponse();
             content.NpcCards = npcCards;
             content.PlayerCards = playerCards;
             #endregion
 
             #region Calcula o poder total de cada carta de ambos
             var npcCardsFullPower = new List<int>();
-            
+
             for (int i = 0; i < npcCards.Count; i++)
             {
                 npcCardsFullPower.Add(GetCardFullPower(npcCards[i].Power, npcCards[i].UpperHand, npcCards[i].Type, playerCards[i].Type));
@@ -80,12 +94,12 @@ namespace MedievalAutoBattler.Service
             content.NpcCardsFullPower = npcCardsFullPower;
 
             var playerCardsFullPower = new List<int>();
-            
+
             for (int i = 0; i < playerCards.Count; i++)
             {
                 playerCardsFullPower.Add(GetCardFullPower(playerCards[i].Power, playerCards[i].UpperHand, playerCards[i].Type, npcCards[i].Type));
             }
-            
+
             content.PlayerCardsFullPower = playerCardsFullPower;
             #endregion
 
@@ -99,7 +113,7 @@ namespace MedievalAutoBattler.Service
             content.PlayerFinalScore = playerScores.Sum();
             #endregion
 
-           
+
             if (HasPlayerWon(content.NpcFinalScore, content.PlayerFinalScore) == false)
             {
                 content.Winner = $"The NPC {npcDB.Name} wins";
@@ -107,22 +121,53 @@ namespace MedievalAutoBattler.Service
                 saveDB.Gold += 0;
                 saveDB.CountMatches++;
                 saveDB.CountDefeats++;
+                battleDB.Winner = npcDB.Name;
+                battleDB.IsFinished = true;
+
+                await this._daoDbContext.SaveChangesAsync();
+
                 return (content, "Results read sucessfully");
             }
 
             content.Winner = $"{saveDB.Name} wins";
 
-            if(saveDB.PlayerLevel < npcDB.Level)
+            if (saveDB.PlayerLevel < npcDB.Level)
             {
-                saveDB.PlayerLevel = npcDB. Level;
+                saveDB.PlayerLevel = npcDB.Level;
             }
             saveDB.Gold += 1;
             saveDB.CountMatches++;
             saveDB.CountVictories++;
+            battleDB.Winner = saveDB.Name;
+            battleDB.IsFinished = true;
+
+            var allNpcsIdsDB = this._daoDbContext
+                                 .Npcs
+                                 .Select(a => a.Id)
+                                 .ToList();
+
+            var message = "Evaluate result sucessfull";
+
+            if (saveDB.AllNpcsDefeatedTrophy == false)
+            {
+                var saveIdDB = saveDB.Id;
+                var allNpcsDefeated = this._daoDbContext
+                                            .Battles
+                                            .Include(a => a.Npc)
+                                            .Where(a => a.Save.Id == saveIdDB)
+                                            .Select(a => a.Npc.Id)
+                                            .ToList();                
+
+                if (allNpcsIdsDB.All(a => allNpcsDefeated.Contains(a)) == true)
+                {
+                    message += " . . . All NPCs have been defeated, a new trophy was unlocked";
+                    saveDB.AllNpcsDefeatedTrophy = true;
+                }
+            }
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (content, "Results read sucessfully");
+            return (content, message);
         }
 
         private static int GetCardFullPower(int power, int upperHand, CardType attackingType, CardType defendingType)
@@ -173,5 +218,33 @@ namespace MedievalAutoBattler.Service
             return true;
         }
 
+        public async Task<(BattleResultsReadResponse?, string)> Read(BattleResultsReadRequest request)
+        {
+            if(request.BattleId <= 0)
+            {
+                return (null, "Error: invalid BattleId");
+            }
+
+            var battleDB = await this._daoDbContext
+                                 .Battles                                 
+                                 .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+
+            if (battleDB == null)
+            {
+                return (null, "Error: battle not found");
+            }
+
+            if(battleDB.IsFinished == false)
+            {
+                return (null, "Error: this battle is not yet finished");
+            }
+
+            var content = new BattleResultsReadResponse
+            {
+                Winner = battleDB.Winner
+            };
+
+            return (content, "Read successfull");
+        }
     }
 }

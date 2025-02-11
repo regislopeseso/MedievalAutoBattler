@@ -26,7 +26,7 @@ namespace MedievalAutoBattler.Service
             var battleDB = await this._daoDbContext
                                      .Battles
                                      .Include(a => a.Save)
-                                     .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+                                     .FirstOrDefaultAsync(a => a.Id == request.BattleId && a.IsFinished == false);
             if (battleDB == null)
             {
                 return (null, "Error: battle not found");
