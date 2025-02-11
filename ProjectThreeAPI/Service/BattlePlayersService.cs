@@ -54,7 +54,7 @@ namespace MedievalAutoBattler.Service
 
             this._daoDbContext.SaveChanges();        
 
-            return (null, "Deck chosen successfully");
+            return (null, "The player's deck has been chosen successfully");
         }
         public (bool, string) CreateIsValid(BattlePlayersCreateRequest request)
         {

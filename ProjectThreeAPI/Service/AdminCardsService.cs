@@ -47,7 +47,7 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext.Add(newCard);
             await _daoDbContext.SaveChangesAsync();
 
-            return (null, "Create successful");
+            return (null, "Card created successfully");
         }
         public (bool, string) CreateIsValid(AdminCardsCreateRequest request)
         {
@@ -79,9 +79,9 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
-        public async Task<(AdminCardsCreateResponse?, string)> Populate(AdminCardsCreateRequest_popupate request)
+        public async Task<(AdminCardsCreateResponse?, string)> Seed(AdminCardsCreateRequest_seed request)
         {
-            var cardsPopulation = new List<Card>();
+            var cardsSeed = new List<Card>();
 
             var miss = new Card
             {
@@ -90,7 +90,7 @@ namespace MedievalAutoBattler.Service
                 IsDeleted = false
 
             };
-            cardsPopulation.Add(miss);
+            cardsSeed.Add(miss);
 
             foreach (var cardType in new[] { CardType.Archer, CardType.Cavalry, CardType.Spearman })
             {
@@ -107,16 +107,16 @@ namespace MedievalAutoBattler.Service
                             Type = cardType,
                             IsDeleted = false
                         };
-                        cardsPopulation.Add(newCard);
+                        cardsSeed.Add(newCard);
                     }
                 }
             }
 
-            this._daoDbContext.AddRange(cardsPopulation);
+            this._daoDbContext.AddRange(cardsSeed);
 
             await _daoDbContext.SaveChangesAsync();
 
-            return (null, "Populate successful");
+            return (null, "Cards seeded successfully");
         }
 
         public async Task<(List<AdminCardsReadResponse>, string)> Read()
@@ -138,7 +138,7 @@ namespace MedievalAutoBattler.Service
                                     .ThenBy(a => a.Name)
                                     .ToListAsync();
 
-            return (content, "Read successful");
+            return (content, "Cards read successfully");
         }
 
         public async Task<(AdminCardsUpdateResponse?, string)> Update(AdminCardsUpdateRequest request)
@@ -166,7 +166,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Update action successful");
+            return (null, "Card updated successfully");
         }
 
         private (bool, string) UpdateIsValid(AdminCardsUpdateRequest card)
@@ -220,7 +220,7 @@ namespace MedievalAutoBattler.Service
                       .Where(a => a.Id == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            return (null, "Delete action successful");
+            return (null, "Card deleted successfully");
         }
     }
 }

@@ -39,7 +39,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "New battle started");
+            return (null, "A new battle started successfully");
         }
     }
 }

@@ -42,7 +42,7 @@ namespace MedievalAutoBattler.Service
                 .OrderByDescending(a => a.Card.Level)
                 .ToList();
 
-            return (content, "Read successful");
+            return (content, "Player's card collection read successfully");
         }
     }
 }

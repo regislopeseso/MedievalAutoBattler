@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request
 {
-    public class AdminCardsCreateRequest_popupate
+    public class AdminCardsCreateRequest_seed
     {
     }
 }

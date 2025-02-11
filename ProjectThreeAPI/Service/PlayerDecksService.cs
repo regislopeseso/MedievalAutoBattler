@@ -50,7 +50,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Create Successful");
+            return (null, "A new deck has been created successfully");
         }
 
         private (bool, string) CreateIsValid(PlayerDecksCreateRequest request)
@@ -118,7 +118,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Update successful");
+            return (null, "Deck updated successfully");
         }
 
         private (bool, string) UpdateIsValid(PlayerDecksUpdateRequest request)
@@ -203,7 +203,7 @@ namespace MedievalAutoBattler.Service
                 }
             }
 
-            return (saveDeckEntries, string.Empty);
+            return (saveDeckEntries, "The deck was deleted successfully");
         }
     }
 }

@@ -40,7 +40,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Random opponent chosen successfully");
+            return (null, "A random NPC has been chosen successfully");
         }
 
         public async Task<(BattleNpcsReadResponse?, string)> Read(BattleNpcsReadRequest request)
@@ -65,7 +65,7 @@ namespace MedievalAutoBattler.Service
                 Name = npcNameDB
             };
 
-            return (content, "Read successful");                
+            return (content, "NPC read successfully");                
         }    
     }
 }

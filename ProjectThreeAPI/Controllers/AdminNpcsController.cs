@@ -31,7 +31,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Seed(AdminNpcsCreateRequest_populate request)
+        public async Task<IActionResult> Seed(AdminNpcsCreateRequest_seed request)
         {
             var (content, message) = await this._adminNpcService.Seed(request);
 

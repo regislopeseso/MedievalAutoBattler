@@ -146,7 +146,7 @@ namespace MedievalAutoBattler.Service
                                  .Select(a => a.Id)
                                  .ToList();
 
-            var message = "Evaluate result sucessfull";
+            var message = "Battle result evaluated sucessfully";
 
             if (saveDB.AllNpcsDefeatedTrophy == false)
             {
@@ -244,7 +244,7 @@ namespace MedievalAutoBattler.Service
                 Winner = battleDB.Winner
             };
 
-            return (content, "Read successfull");
+            return (content, "Battle result read successfully");
         }
     }
 }

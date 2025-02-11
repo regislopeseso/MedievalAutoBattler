@@ -61,7 +61,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Create successful");
+            return (null, "NPC created successfully");
         }
         public (bool, string) CreateIsValid(AdminNpcsCreateRequest request)
         {
@@ -88,7 +88,7 @@ namespace MedievalAutoBattler.Service
             return (true, String.Empty);
         }
 
-        public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_populate request)
+        public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_seed request)
         {
             var cardsDB = await this._daoDbContext.Cards.ToListAsync();
             var npcsSeed = new List<Npc>();
@@ -100,7 +100,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Create successful");
+            return (null, "NPCs seeded successfully");
         }
         private List<Npc> GetNpcs(int level, List<Card> cardsDB)
         {
@@ -382,10 +382,16 @@ namespace MedievalAutoBattler.Service
                               .AsNoTracking()
                               .Where(a => a.IsDeleted == false);
 
-
-            if (request.startId.HasValue && request.endId.HasValue)
+            var message = "NPC read successfully";
+            
+            if (request.startId.HasValue && request.endId.HasValue == true)
             {
                 contentQueriable = contentQueriable.Where(a => a.Id >= request.startId && a.Id <= request.endId);
+                
+                if (request.startId != request.endId)
+                {
+                    message = "NPCs read successfully";
+                }
             }
 
             var content = await contentQueriable
@@ -409,9 +415,9 @@ namespace MedievalAutoBattler.Service
                 })
                 .OrderBy(a => a.Level)
                 .ThenBy(a => a.Name)
-                .ToListAsync();
-
-            return (content, "Read Successful");
+                .ToListAsync();           
+            
+            return (content, message);
         }
 
         public async Task<(AdminNpcsFlexUpdateResponse?, string)> FlexUpdate(AdminNpcsFlexUpdateRequest request)
@@ -484,7 +490,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Update action successful");
+            return (null, "NPC updated successfully");
         }
         private (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest request)
         {
@@ -554,7 +560,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Update action successful");
+            return (null, "NPC updated successfully");
         }
         private (bool, string) UpdateIsValid(AdminNpcsUpdateRequest request)
         {
@@ -603,7 +609,7 @@ namespace MedievalAutoBattler.Service
                       .Where(a => a.Id == request.NpcId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            return (null, "Delete successful");
+            return (null, "NPC deleted successfully");
         }
         private async Task<(List<NpcDeckEntry>?, string)> GetNewDeck(List<int> cardIds)
         {

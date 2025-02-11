@@ -31,9 +31,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Populate(AdminCardsCreateRequest_popupate request)
+        public async Task<IActionResult> Seed(AdminCardsCreateRequest_seed request)
         {
-            var (content, message) = await this._adminCardService.Populate(request);
+            var (content, message) = await this._adminCardService.Seed(request);
 
             var response = new Response<AdminCardsCreateResponse>
             {

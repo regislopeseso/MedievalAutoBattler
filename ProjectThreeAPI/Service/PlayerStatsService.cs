@@ -41,7 +41,7 @@ namespace MedievalAutoBattler.Service
                 AllNpcsDefeatedTrophy = saveDB.AllNpcsDefeatedTrophy
             };
 
-            return (content, "Read successfull");
+            return (content, "Save statistics read successfully");
         }
     }
 }
