@@ -45,11 +45,11 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read([FromQuery] AdminCardsReadRequest request)
+        public async Task<IActionResult> Get(AdminCardsGetRequest request)
         {
-            var (content, message) = await this._adminCardService.Read();
+            var (content, message) = await this._adminCardService.GetCards(request);
 
-            var response = new Response<List<AdminCardsReadResponse>>()
+            var response = new Response<List<AdminCardsGetResponse>>()
             {
                 Content = content,
                 Message = message

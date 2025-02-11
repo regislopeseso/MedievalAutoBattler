@@ -41,7 +41,7 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: this NPC already exists - {request.Name}");
             }
 
-            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+            var (newNpcDeckEntries, ErrorMessage) = await this.GenerateRandomDeck(request.CardIds);
 
             if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
             {
@@ -80,9 +80,9 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: the NPC's description is mandatory");
             }
 
-            if (request.CardIds.Count == 0 || request.CardIds.Count != 5)
+            if (request.CardIds == null || request.CardIds.Count != Constants.DeckSize)
             {
-                return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+                return (false, $"Error: the NPC's deck can neither be empty nor contain fewer or more than {Constants.DeckSize} cards");
             }
 
             return (true, String.Empty);
@@ -90,24 +90,46 @@ namespace MedievalAutoBattler.Service
 
         public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_seed request)
         {
-            var cardsDB = await this._daoDbContext.Cards.ToListAsync();
+            var cardsDB = await this._daoDbContext
+                                    .Cards
+                                    .Where(a => a.IsDeleted == false)
+                                    .ToListAsync();
+
+            if (cardsDB == null || cardsDB.Count == 0)
+            {
+                return (null, "Error: cards not found");
+            }
+
+            //Se não existir pelo menos uma carta de cada level não é possível fazer o seed dos NPCs.
+            var countCardsLvl = cardsDB.GroupBy(a => a.Level).Count();
+            if(countCardsLvl < Constants.MaxCardLvl - Constants.MinCardLvl)
+            {
+                return (null, "Error: not enough card variety for seeding NPCs. The existance of at least one card of each level is mandatory for seeding NPCs");
+            }
+
             var npcsSeed = new List<Npc>();
 
-            for (int level = 0; level <= 9; level++)
+            for (int level = Constants.MinCardLvl; level <= Constants.MaxCardLvl; level++)
             {
-                this._daoDbContext.AddRange(GetNpcs(level, cardsDB));
+                npcsSeed.AddRange(GenerateRandomNpcs(level, cardsDB));
             }
+
+            if(npcsSeed == null || npcsSeed.Count == 0)
+            {
+                return (null, "Error: seeding NPCs failed");
+            }
+
+            this._daoDbContext.AddRange(npcsSeed);
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "NPCs seeded successfully");
+            return (null, "NPCs have been successfully seeded");
         }
-        private List<Npc> GetNpcs(int level, List<Card> cardsDB)
+        private static List<Npc> GenerateRandomNpcs(int level, List<Card> cardsDB)
         {
             var random = new Random();
-            int CountNpcs = 0;
 
-            if (level == 0 || level == 9)
+            if (level == Constants.MinCardLvl || level == Constants.MaxCardLvl)
             {
                 var countBotsLvlZero = 0;
                 var countBotsLvlNine = 0;
@@ -120,6 +142,7 @@ namespace MedievalAutoBattler.Service
                     // Filtering all cards having cardLvl iguals to 0 or 9 (currently contains 4 cards npcLvl 0 or 10 npcLvl 9):
                     var cardsFiltered = cardsDB.Where(a => a.Level == level).ToList();
 
+                    // Creating a new list of NpcDeckentries
                     var validNpcDeckEntries = new List<NpcDeckEntry>();
                     for (int countCards = 0; countCards < 5; countCards++)
                     {
@@ -251,7 +274,7 @@ namespace MedievalAutoBattler.Service
                                 var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
 
                                 // Obtaining one random card out of the list of filtered cards
-                                var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+                                var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
 
                                 // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                                 validNpcDeckEntries.Add
@@ -314,7 +337,7 @@ namespace MedievalAutoBattler.Service
                         var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
 
                         // Obtaing a random card of cardLvl corresponding to its position in the sequence:
-                        var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
+                        var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
 
                         // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
@@ -375,22 +398,22 @@ namespace MedievalAutoBattler.Service
             }
         }
 
-        public async Task<(List<AdminNpcsReadResponse>, string)> Read(AdminNpcsReadRequest request)
+        public async Task<(List<AdminNpcsReadResponse>, string)> GetNpcs(AdminNpcsGetRequest request)
         {
             var contentQueriable = this._daoDbContext
                               .Npcs
                               .AsNoTracking()
                               .Where(a => a.IsDeleted == false);
 
-            var message = "NPC read successfully";
-            
-            if (request.startId.HasValue && request.endId.HasValue == true)
+            var message = "NPC listed successfully";
+
+            if (request.StartNpcId.HasValue && request.EndNpcId.HasValue == true)
             {
-                contentQueriable = contentQueriable.Where(a => a.Id >= request.startId && a.Id <= request.endId);
-                
-                if (request.startId != request.endId)
+                contentQueriable = contentQueriable.Where(a => a.Id >= request.StartNpcId && a.Id <= request.EndNpcId);
+
+                if (request.StartNpcId != request.EndNpcId)
                 {
-                    message = "NPCs read successfully";
+                    message = "All NPCs listed successfully";
                 }
             }
 
@@ -401,7 +424,7 @@ namespace MedievalAutoBattler.Service
                     Name = a.Name,
                     Description = a.Description,
                     Deck = a.Deck
-                        .Select(b => new AdminNpcReadResponse_Deck
+                        .Select(b => new AdminNpcGetResponse_Deck
                         {
                             Id = b.Id,
                             Name = b.Card.Name,
@@ -415,14 +438,14 @@ namespace MedievalAutoBattler.Service
                 })
                 .OrderBy(a => a.Level)
                 .ThenBy(a => a.Name)
-                .ToListAsync();           
-            
+                .ToListAsync();
+
             return (content, message);
         }
 
         public async Task<(AdminNpcsFlexUpdateResponse?, string)> FlexUpdate(AdminNpcsFlexUpdateRequest request)
         {
-            var (isValid, message) = this.FlexUpdateIsValid(request);
+            var (isValid, message) = FlexUpdateIsValid(request);
 
             if (isValid == false)
             {
@@ -492,7 +515,7 @@ namespace MedievalAutoBattler.Service
 
             return (null, "NPC updated successfully");
         }
-        private (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest request)
+        private static (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest request)
         {
             if (request == null)
             {
@@ -546,7 +569,7 @@ namespace MedievalAutoBattler.Service
                       .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == request.Id)
                       .ExecuteDeleteAsync();
 
-            var (newNpcDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+            var (newNpcDeckEntries, ErrorMessage) = await this.GenerateRandomDeck(request.CardIds);
 
             if (newNpcDeckEntries == null || newNpcDeckEntries.Count != 5)
             {
@@ -579,9 +602,9 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: the NPC's description is mandatory");
             }
 
-            if (request.CardIds == null || request.CardIds.Count == 0 || request.CardIds.Count != 5)
+            if (request.CardIds == null || request.CardIds.Count != Constants.DeckSize)
             {
-                return (false, "Error: the NPC's deck can neither be empty nor contain fewer or more than 5 cards");
+                return (false, $"Error: the NPC's deck can neither be empty nor contain fewer or more than {Constants.DeckSize} cards");
             }
 
             return (true, String.Empty);
@@ -611,7 +634,7 @@ namespace MedievalAutoBattler.Service
 
             return (null, "NPC deleted successfully");
         }
-        private async Task<(List<NpcDeckEntry>?, string)> GetNewDeck(List<int> cardIds)
+        private async Task<(List<NpcDeckEntry>?, string)> GenerateRandomDeck(List<int> cardIds)
         {
             var cardsDB = await this._daoDbContext
                                     .Cards

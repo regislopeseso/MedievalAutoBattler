@@ -45,9 +45,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(AdminNpcsReadRequest request)
+        public async Task<IActionResult> Get(AdminNpcsGetRequest request)
         {
-            var (content, message) = await this._adminNpcService.Read(request);
+            var (content, message) = await this._adminNpcService.GetNpcs(request);
 
             var response = new Response<List<AdminNpcsReadResponse>>()
             {

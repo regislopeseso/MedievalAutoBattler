@@ -2,7 +2,7 @@
 
 namespace MedievalAutoBattler.Models.Dtos.Response
 {
-    public class AdminNpcReadResponse_Deck
+    public class AdminNpcGetResponse_Deck
     {
         public int Id { get; set; }
         public string Name { get; set; }

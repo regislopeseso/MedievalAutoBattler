@@ -7,7 +7,7 @@ namespace MedievalAutoBattler.Models.Dtos.Response
         public int Id { get; set; }
         public string Name {  get; set; }
         public string Description { get; set; }
-        public List<AdminNpcReadResponse_Deck>? Deck { get; set; }
+        public List<AdminNpcGetResponse_Deck>? Deck { get; set; }
         public int Level { get; set; }
     }
 }

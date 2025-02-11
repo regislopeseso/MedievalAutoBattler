@@ -61,19 +61,23 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: the card's name is mandatory");
             }
 
-            if (request.Power < 0 || request.Power > 9)
+            if (request.Power < Constants.MinCardPower || request.Power > Constants.MaxCardPower)
             {
-                return (false, "Error: the card's power must be between 0 and 9");
+                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
             }
 
-            if (request.UpperHand < 0 || request.UpperHand > 9)
+            if (request.UpperHand < Constants.MinCardUpperHand || request.UpperHand > Constants.MaxCardUpperHand)
             {
-                return (false, "Error: the card's upper hand value must be between 0 and 9");
+                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
             }
 
             if (Enum.IsDefined(request.Type) == false)
             {
-                return (false, "Error: invalid vard type. The type must be one of the following: none (0), archer (1), calvary (2) or spearman (3)");
+                var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
+                                       .Cast<CardType>()
+                                       .Select(cardType => $"{cardType} ({(int)cardType})"));
+
+                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
             }
 
             return (true, String.Empty);
@@ -83,20 +87,21 @@ namespace MedievalAutoBattler.Service
         {
             var cardsSeed = new List<Card>();
 
-            var miss = new Card
-            {
-                Name = "Miss",
-                Type = CardType.None,
-                IsDeleted = false
+            ////Optionally adds a "miss" card, which has 0 power, 0 upper hand and no type
+            //var miss = new Card
+            //{
+            //    Name = "Miss",
+            //    Type = CardType.None,
+            //    IsDeleted = false
 
-            };
-            cardsSeed.Add(miss);
+            //};
+            //cardsSeed.Add(miss);
 
             foreach (var cardType in new[] { CardType.Archer, CardType.Cavalry, CardType.Spearman })
             {
-                for (int power = 0; power < 10; power++)
+                for (int power = Constants.MinCardPower; power <= Constants.MaxCardPower; power++)
                 {
-                    for (int upperHand = 0; upperHand < 10; upperHand++)
+                    for (int upperHand = Constants.MinCardUpperHand; upperHand <= Constants.MaxCardUpperHand; upperHand++)
                     {
                         var newCard = new Card
                         {
@@ -119,13 +124,13 @@ namespace MedievalAutoBattler.Service
             return (null, "Cards seeded successfully");
         }
 
-        public async Task<(List<AdminCardsReadResponse>, string)> Read()
+        public async Task<(List<AdminCardsGetResponse>, string)> GetCards(AdminCardsGetRequest request)
         {
             var content = await this._daoDbContext
                                     .Cards
                                     .AsNoTracking()
                                     .Where(a => a.IsDeleted == false)
-                                    .Select(a => new AdminCardsReadResponse
+                                    .Select(a => new AdminCardsGetResponse
                                     {
                                         Id = a.Id,
                                         Name = a.Name,
@@ -138,7 +143,7 @@ namespace MedievalAutoBattler.Service
                                     .ThenBy(a => a.Name)
                                     .ToListAsync();
 
-            return (content, "Cards read successfully");
+            return (content, "All cards listed successfully");
         }
 
         public async Task<(AdminCardsUpdateResponse?, string)> Update(AdminCardsUpdateRequest request)
@@ -181,19 +186,23 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: the card's name is mandatory");
             }
 
-            if (card.Power < 0 || card.Power > 9)
+            if (card.Power < Constants.MinCardPower || card.Power > Constants.MaxCardPower)
             {
-                return (false, "Error: the card's power must be between 0 and 9");
+                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
             }
 
-            if (card.UpperHand < 0 || card.UpperHand > 9)
+            if (card.UpperHand < Constants.MinCardUpperHand || card.UpperHand > Constants.MaxCardUpperHand)
             {
-                return (false, "Error: the card's upper hand value must be between 0 and 9");
+                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
             }
 
-            if (Enum.IsDefined(typeof(CardType), card.Type) == false)
+            if (Enum.IsDefined(card.Type) == false)
             {
-                return (false, "Error: invalid card type. The type must be one of the following: none (0), archer (1), calvary (2) or spearman (3)");
+                var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
+                                       .Cast<CardType>()
+                                       .Select(cardType => $"{cardType} ({(int)cardType})"));
+
+                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
             }
 
             return (true, String.Empty);
