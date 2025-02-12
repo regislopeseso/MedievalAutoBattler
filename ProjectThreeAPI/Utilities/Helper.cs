@@ -1,5 +1,6 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Entities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MedievalAutoBattler.Utilities
 {
@@ -142,6 +143,21 @@ namespace MedievalAutoBattler.Utilities
                     break;
             }
             return validCardLvlSequence;
+        }
+
+
+        public static int GetCardFullPower(int power, int upperhand, int firstType, int secondType)
+        {
+            return firstType == 1 && secondType == 2 ? power + upperhand :
+                   firstType == 1 && secondType == 3 ? power :
+                   firstType == 2 && secondType == 1 ? power :
+                   firstType == 2 && secondType == 3 ? power + upperhand : 
+                   firstType == 3 && secondType == 1 ? power + upperhand : power;
+        }
+
+        public static int GetDuelingPoints(int playerFullPower, int npcFullPower)
+        {
+            return playerFullPower - npcFullPower <= 0 ? 0 : 1;
         }
     }
 }

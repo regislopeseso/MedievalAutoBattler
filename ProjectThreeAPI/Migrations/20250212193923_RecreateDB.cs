@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MedievalAutoBattler.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateDB : Migration
+    public partial class RecreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -105,6 +105,36 @@ namespace MedievalAutoBattler.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "battles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SaveId = table.Column<int>(type: "int", nullable: false),
+                    NpcId = table.Column<int>(type: "int", nullable: false),
+                    Winner = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsFinished = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_battles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_battles_npcs_NpcId",
+                        column: x => x.NpcId,
+                        principalTable: "npcs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_battles_saves_SaveId",
+                        column: x => x.SaveId,
+                        principalTable: "saves",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Decks",
                 columns: table => new
                 {
@@ -120,41 +150,6 @@ namespace MedievalAutoBattler.Migrations
                     table.PrimaryKey("PK_Decks", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Decks_saves_SaveId",
-                        column: x => x.SaveId,
-                        principalTable: "saves",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "battles",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    SaveId = table.Column<int>(type: "int", nullable: false),
-                    PlayerDeckId = table.Column<int>(type: "int", nullable: true),
-                    NpcId = table.Column<int>(type: "int", nullable: true),
-                    Winner = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsFinished = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_battles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_battles_Decks_PlayerDeckId",
-                        column: x => x.PlayerDeckId,
-                        principalTable: "Decks",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_battles_npcs_NpcId",
-                        column: x => x.NpcId,
-                        principalTable: "npcs",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_battles_saves_SaveId",
                         column: x => x.SaveId,
                         principalTable: "saves",
                         principalColumn: "Id",
@@ -193,11 +188,6 @@ namespace MedievalAutoBattler.Migrations
                 name: "IX_battles_NpcId",
                 table: "battles",
                 column: "NpcId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_battles_PlayerDeckId",
-                table: "battles",
-                column: "PlayerDeckId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_battles_SaveId",
