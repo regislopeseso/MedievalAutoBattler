@@ -17,9 +17,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(PlayerCardsReadRequest request)
+        public async Task<IActionResult> Get(PlayerCardsReadRequest request)
         {
-            var (content, message) = await this._playerCardsService.Read(request);
+            var (content, message) = await this._playerCardsService.GetCards(request);
 
             var response = new Response<List<PlayerCardsReadResponse>>()
             {

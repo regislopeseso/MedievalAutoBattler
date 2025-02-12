@@ -16,9 +16,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(PlayerStatsReadRequest request)
+        public async Task<IActionResult> Get(PlayerStatsReadRequest request)
         {
-            var (content, message) = await this._playerStatsService.Read(request);
+            var (content, message) = await this._playerStatsService.GetStats(request);
 
             var response = new Response<PlayerStatsReadResponse>()
             {

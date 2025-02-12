@@ -405,15 +405,17 @@ namespace MedievalAutoBattler.Service
                               .AsNoTracking()
                               .Where(a => a.IsDeleted == false);
 
-            var message = "NPC listed successfully";
+            var message = "All NPCs listed successfully";
 
             if (request.StartNpcId.HasValue && request.EndNpcId.HasValue == true)
             {
                 contentQueriable = contentQueriable.Where(a => a.Id >= request.StartNpcId && a.Id <= request.EndNpcId);
 
-                if (request.StartNpcId != request.EndNpcId)
+                message = "NPCs listed successfully";
+
+                if (request.StartNpcId == request.EndNpcId)
                 {
-                    message = "All NPCs listed successfully";
+                    message = "NPC listed successfully";
                 }
             }
 

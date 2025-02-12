@@ -126,10 +126,26 @@ namespace MedievalAutoBattler.Service
 
         public async Task<(List<AdminCardsGetResponse>, string)> GetCards(AdminCardsGetRequest request)
         {
-            var content = await this._daoDbContext
-                                    .Cards
-                                    .AsNoTracking()
-                                    .Where(a => a.IsDeleted == false)
+            var contentQueriable = this._daoDbContext
+                                       .Cards
+                                       .AsNoTracking()
+                                       .Where(a => a.IsDeleted == false);
+
+            var message = "All cards listed successfully";
+
+            if (request.StartCardId.HasValue && request.EndCardId.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Id >= request.StartCardId && a.Id <= request.EndCardId);
+
+                message = "Cards listed successfully";
+
+                if (request.StartCardId != request.EndCardId)
+                {
+                    message = "Card listed successfully";
+                }
+            }
+
+            var content = await contentQueriable
                                     .Select(a => new AdminCardsGetResponse
                                     {
                                         Id = a.Id,

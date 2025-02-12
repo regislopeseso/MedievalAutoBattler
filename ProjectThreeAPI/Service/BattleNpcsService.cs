@@ -43,7 +43,7 @@ namespace MedievalAutoBattler.Service
             return (null, "A random NPC has been chosen successfully");
         }
 
-        public async Task<(BattleNpcsReadResponse?, string)> Read(BattleNpcsReadRequest request)
+        public async Task<(BattleNpcsReadResponse?, string)> GetOpponent(BattleNpcsReadRequest request)
         {
             if (request.BattleId <= 0)
             {

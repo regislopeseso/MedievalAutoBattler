@@ -30,9 +30,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Read(BattleNpcsReadRequest request)
+        public async Task<IActionResult> Get(BattleNpcsReadRequest request)
         {
-            var (content, message) = await this._battleNpcsService.Read(request);
+            var (content, message) = await this._battleNpcsService.GetOpponent(request);
 
             var response = new Response<BattleNpcsReadResponse>()
             {

@@ -1,7 +1,6 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
 using Microsoft.EntityFrameworkCore;
-using MedievalAutoBattler.Models.Entities;
 
 namespace MedievalAutoBattler.Service
 {
@@ -13,13 +12,12 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(List<PlayerCardsReadResponse>?, string)> Read(PlayerCardsReadRequest request)
+        public async Task<(List<PlayerCardsReadResponse>?, string)> GetCards(PlayerCardsReadRequest request)
         {
             if (request.SaveId <= 0)
             {
                 return (null, "Error: invalid SaveId");
             }
-
 
             var collection = await this._daoDbContext.Decks
                                        .Where(a => a.Save.Id == request.SaveId)

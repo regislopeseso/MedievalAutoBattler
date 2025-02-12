@@ -12,7 +12,7 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(PlayerStatsReadResponse?, string)> Read(PlayerStatsReadRequest request)
+        public async Task<(PlayerStatsReadResponse?, string)> GetStats(PlayerStatsReadRequest request)
         {
             if(request.SaveId == 0)
             {

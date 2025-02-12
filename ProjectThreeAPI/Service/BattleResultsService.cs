@@ -218,7 +218,7 @@ namespace MedievalAutoBattler.Service
             return true;
         }
 
-        public async Task<(BattleResultsReadResponse?, string)> Read(BattleResultsReadRequest request)
+        public async Task<(BattleResultsReadResponse?, string)> GetResults(BattleResultsReadRequest request)
         {
             if(request.BattleId <= 0)
             {
