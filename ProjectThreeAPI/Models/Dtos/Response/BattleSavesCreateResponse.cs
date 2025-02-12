@@ -2,5 +2,6 @@
 {
     public class BattleSavesCreateResponse
     {
+        public int BattleId { get; set; }
     }
 }
