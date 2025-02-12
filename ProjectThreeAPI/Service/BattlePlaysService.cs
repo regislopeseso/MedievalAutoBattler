@@ -118,19 +118,33 @@ namespace MedievalAutoBattler.Service
 
             if (battleDB.Save.AllNpcsDefeatedTrophy == false)
             {
-                var saveIdDB = battleDB.Save.Id;
-                var allNpcsDefeated = this._daoDbContext
-                                            .Battles
-                                            .Include(a => a.Npc)
-                                            .Where(a => a.Save.Id == saveIdDB)
-                                            .Select(a => a.Npc.Id)
-                                            .ToList();
+                var allNpcsDefeated = await this._daoDbContext
+                                                .Battles
+                                                .Where(a => a.Save.Id == battleDB.SaveId)
+                                                .Select(a => a.NpcId)
+                                                .ToListAsync();
 
                 if (allNpcsIdsDB.All(a => allNpcsDefeated.Contains(a)) == true)
                 {
                     message += " . . . All NPCs have been defeated, a new trophy was unlocked";
                     battleDB.Save.AllNpcsDefeatedTrophy = true;
                 }
+            }
+
+            if(battleDB.Save.AllNpcsDefeatedTrophy == true)
+            {
+                var allNpcsDefeated = await this._daoDbContext
+                                                .Battles
+                                                .Where(a => a.Save.Id == battleDB.SaveId)
+                                                .Select(a => a.NpcId)
+                                                .ToListAsync();
+
+                if (allNpcsIdsDB.All(a => allNpcsDefeated.Contains(a)) == false)
+                {
+                    message += " . . . new NPCS yet to be defeat, your trophy was removed";
+                    battleDB.Save.AllNpcsDefeatedTrophy = false;
+                }
+
             }
             await this._daoDbContext.SaveChangesAsync();
 
