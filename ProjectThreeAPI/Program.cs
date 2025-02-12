@@ -14,7 +14,6 @@ builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<PlayerCardsService>();
 builder.Services.AddScoped<PlayerDecksService>();
 builder.Services.AddScoped<BattleSavesService>();
-builder.Services.AddScoped<BattleNpcsService>();
 builder.Services.AddScoped<BattlePlayersService>();
 builder.Services.AddScoped<BattleResultsService>();
 builder.Services.AddScoped<DeckBoostersService>();

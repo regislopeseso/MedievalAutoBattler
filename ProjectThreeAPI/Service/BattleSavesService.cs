@@ -24,15 +24,30 @@ namespace MedievalAutoBattler.Service
             var saveDB = await this._daoDbContext
                                    .Saves
                                    .FirstOrDefaultAsync(a => a.Id == request.SaveId);
-
             if (saveDB == null)
             {
                 return (null, "Error: save not found.");
             }
 
+            var random = new Random();
+
+            var validNpcsIdsDB = await this._daoDbContext
+                                           .Npcs
+                                           .Where(a => a.IsDeleted == false && a.Level <= saveDB.PlayerLevel + 1)
+                                           .Select(a =>new {a.Id, a.Name})
+                                           .ToListAsync();
+
+            if (validNpcsIdsDB == null || validNpcsIdsDB.Count == 0)
+            {
+                return (null, "Error: no valid NPC was found for this match");
+            }
+
+            var randomNpc = validNpcsIdsDB.OrderBy(a => random.Next()).FirstOrDefault();
+
             var newMatch = new Battle
             {
-                Save = saveDB,
+                SaveId = saveDB.Id,
+                NpcId = randomNpc.Id
             };
 
             this._daoDbContext.Add(newMatch);
@@ -41,10 +56,11 @@ namespace MedievalAutoBattler.Service
 
             var content = new BattleSavesCreateResponse
             {
-                BattleId = newMatch.Id
+                BattleId = newMatch.Id,
+                NpcName = randomNpc.Name
             };
 
             return (content, "A new battle started successfully");
-        }
+        }         
     }
 }

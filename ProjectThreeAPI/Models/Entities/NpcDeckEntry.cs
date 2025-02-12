@@ -8,7 +8,7 @@ namespace MedievalAutoBattler.Models.Entities
     public class NpcDeckEntry
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]        
         public int Id { get; set; }        
         [ForeignKey("Card")]
         public int CardId { get; set; }       

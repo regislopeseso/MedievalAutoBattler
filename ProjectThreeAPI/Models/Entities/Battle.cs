@@ -11,9 +11,16 @@ namespace MedievalAutoBattler.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public required Save Save {get; set;}
+
+        [ForeignKey("Save")]
+        public int SaveId { get; set; }     
+        public Save Save {get; set;}
         public Deck? PlayerDeck { get; set; }
-        public Npc? Npc { get; set; }
+
+        [ForeignKey("Npc")]
+        public int NpcId {  get; set; }
+        public Npc Npc { get; set; }
+
         public string? Winner { get; set; }
         public bool IsFinished { get; set; } = false;
     }
