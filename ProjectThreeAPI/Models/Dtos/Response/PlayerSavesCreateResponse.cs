@@ -2,5 +2,6 @@
 {
     public class PlayerSavesCreateResponse
     {
+        public int SaveId { get; set; }
     }
 }

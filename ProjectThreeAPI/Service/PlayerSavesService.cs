@@ -40,7 +40,12 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "A new save has been created successfully");
+            var content = new PlayerSavesCreateResponse
+            {
+                SaveId = newSave.Id,
+            };
+
+            return (content, "A new save has been created successfully");
         }
 
         private (bool, string) CreateIsValid(PlayerSavesCreateRequest request)
