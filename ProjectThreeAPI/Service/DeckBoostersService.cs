@@ -13,7 +13,7 @@ namespace MedievalAutoBattler.Service
             _daoDbcontext = daoDbcontext;
         }
 
-        public async Task<(DeckBoostersCreateResponse?, string)> Create(DeckBoostersCreateRequest request)
+        public async Task<(DeckBoostersCreateResponse?, string)> OpenBooster(DeckBoostersCreateRequest request)
         {
             if(request.SaveId <= 0)
             {

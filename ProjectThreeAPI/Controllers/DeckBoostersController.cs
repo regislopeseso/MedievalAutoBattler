@@ -20,7 +20,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DeckBoostersCreateRequest request)
         {
-            var (content, message) = await this._deckBoostersService.Create(request);
+            var (content, message) = await this._deckBoostersService.OpenBooster(request);
 
             var response = new Response<DeckBoostersCreateResponse>
             {

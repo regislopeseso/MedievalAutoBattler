@@ -1,8 +1,8 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Response
 {
-    public class BattlePlayResponse
+    public class BattlePlaysRunResponse
     {
-        public List<List<BattlePlayResponse_DuelingCard>> Duels { get; set; }     
+        public List<List<BattlePlaysRunResponse_DuelingCard>> Duels { get; set; }     
         public int WinnerId { get; set; }
         public string Winner { get; set; }
     }

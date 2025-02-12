@@ -2,7 +2,7 @@
 
 namespace MedievalAutoBattler.Models.Dtos.Response
 {
-    public class BattlePlayResponse_DuelingCard
+    public class BattlePlaysRunResponse_DuelingCard
     {
         public string CardName {  get; set; }
         public CardType CardType { get; set; }

@@ -4,6 +4,7 @@ using MedievalAutoBattler.Models.Entities;
 using MedievalAutoBattler.Models.Enums;
 using MedievalAutoBattler.Utilities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Reflection.Metadata;
 
 namespace MedievalAutoBattler.Service
@@ -17,8 +18,14 @@ namespace MedievalAutoBattler.Service
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(BattlePlayResponse?, string)> Play(BattlePlayRequest request)
+        public async Task<(BattlePlaysRunResponse?, string)> Run(BattlePlaysRunRequest request)
         {
+            var (isValid, message) = CreateIsValid(request);
+            if (isValid == false)
+            {
+                return (null, message);
+            }
+
             var battleDB = await this._daoDbContext
                 .Battles
                 .Include(a => a.Npc)
@@ -31,10 +38,20 @@ namespace MedievalAutoBattler.Service
                 .Where(a => a.Id == request.BattleId && a.IsFinished == false)
                 .FirstOrDefaultAsync();
 
+            if (battleDB == null)
+            {
+                return (null, "Error: invalid battle");
+            }
+
+            if (battleDB.Save.Decks == null || battleDB.Save.Decks.Count == 0)
+            {
+                return (null, "Error: invalid deck");
+            }
+
             var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.Card)).ToList();
-            var npcCardsDB = battleDB.Npc.Deck.Select(a => a.Card).ToList();     
-        
-            var duels = new List<List<BattlePlayResponse_DuelingCard>>();
+            var npcCardsDB = battleDB.Npc.Deck.Select(a => a.Card).ToList();
+
+            var duels = new List<List<BattlePlaysRunResponse_DuelingCard>>();
 
             for (int i = 0; i < Constants.DeckSize; i++)
             {
@@ -43,9 +60,9 @@ namespace MedievalAutoBattler.Service
                 var npcCardFullPower = Helper.GetCardFullPower(npcCardsDB[i].Power, npcCardsDB[i].UpperHand, (int)npcCardsDB[i].Type, (int)playerCardsDB[i].Type);
 
                 duels.Add(
-                    new List<BattlePlayResponse_DuelingCard>
+                    new List<BattlePlaysRunResponse_DuelingCard>
                     {
-                        new BattlePlayResponse_DuelingCard
+                        new BattlePlaysRunResponse_DuelingCard
                         {
                             CardName = playerCardsDB[i].Name,
                             CardType = playerCardsDB[i].Type,
@@ -54,7 +71,7 @@ namespace MedievalAutoBattler.Service
                             CardFullPower = playerCardFullPower,
                             DualResult = Helper.GetDuelingPoints(playerCardFullPower, npcCardFullPower),
                         },
-                        new BattlePlayResponse_DuelingCard
+                        new BattlePlaysRunResponse_DuelingCard
                         {
                             CardName = npcCardsDB[i].Name,
                             CardType = npcCardsDB[i].Type,
@@ -65,14 +82,14 @@ namespace MedievalAutoBattler.Service
                         },
                     });
             }
-            
+
             var playerTotalPoints = duels.Select(a => a[0].DualResult).Sum();
 
             var npcTotalPoints = duels.Select(a => a[1].DualResult).Sum();
 
             var winner = battleDB.Save.Name;
 
-            var content = new BattlePlayResponse();
+            var content = new BattlePlaysRunResponse();
 
             if (npcTotalPoints > playerTotalPoints)
             {
@@ -114,7 +131,7 @@ namespace MedievalAutoBattler.Service
             content.Duels = duels;
             content.WinnerId = battleDB.SaveId;
 
-            var message = "Battle result evaluated sucessfully";
+            message = "Battle result evaluated sucessfully";
 
             if (battleDB.Save.AllNpcsDefeatedTrophy == false)
             {
@@ -131,7 +148,7 @@ namespace MedievalAutoBattler.Service
                 }
             }
 
-            if(battleDB.Save.AllNpcsDefeatedTrophy == true)
+            if (battleDB.Save.AllNpcsDefeatedTrophy == true)
             {
                 var allNpcsDefeated = await this._daoDbContext
                                                 .Battles
@@ -151,53 +168,59 @@ namespace MedievalAutoBattler.Service
             return (content, message);
         }
 
-        //public async Task<(BattleResultsReadResponse?, string)> GetResults(BattleResultsReadRequest request)
-        //{
-        //    if (request.BattleId <= 0)
-        //    {
-        //        return (null, "Error: invalid BattleId");
-        //    }
+        public (bool, string) CreateIsValid(BattlePlaysRunRequest request)
+        {
+            if (request == null)
+            {
+                return (false, "Error: no information provided");
+            }
 
-        //    var battleDB = await this._daoDbContext
-        //                         .Battles
-        //                         .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+            if (request.BattleId <= 0)
+            {
+                return (false, "Error: invalid BattleId");
+            }
 
-        //    if (battleDB == null)
-        //    {
-        //        return (null, "Error: duels not found");
-        //    }
+            if (request.DeckId <= 0)
+            {
+                return (false, "Error: invalid DeckId");
+            }
 
-        //    if (battleDB.IsFinished == false)
-        //    {
-        //        return (null, "Error: this duels is not yet finished");
-        //    }
+            return (true, String.Empty);
+        }
 
-        //    var content = new BattleResultsReadResponse
-        //    {
-        //        Winner = battleDB.Winner
-        //    };
 
-        //    return (content, "Battle result read successfully");
-        //}
 
-        //public (bool, string) CreateIsValid(BattlePlayersCreateRequest request)
-        //{
-        //    if (request == null)
-        //    {
-        //        return (false, "Error: no information provided");
-        //    }
 
-        //    if (request.BattleId <= 0)
-        //    {
-        //        return (false, "Error: invalid BattleId");
-        //    }
 
-        //    if (request.DeckId <= 0)
-        //    {
-        //        return (false, "Error: invalid DeckId");
-        //    }
+        public async Task<(BattlePlaysGetResponse?, string)> GetResults(BattlePlaysGetRequest request)
+        {
+            if (request.BattleId == null && request.SaveId == null || request.BattleId <= 0 && request.SaveId <= 0)
+            {
+                return (null, "Error: informing either a BattleId or a SaveId is mandatory");
+            }
 
-        //    return (true, String.Empty);
-        //}
+            var battleDB = await this._daoDbContext
+                                 .Battles
+                                 .FirstOrDefaultAsync(a => a.Id == request.BattleId);
+
+            if (battleDB == null)
+            {
+                return (null, "Error: duels not found");
+            }
+
+            if (battleDB.IsFinished == false)
+            {
+                return (null, "Error: this duels is not yet finished");
+            }
+
+            var content = new BattleResultsReadResponse
+            {
+                Winner = battleDB.Winner
+            };
+
+            return (content, "Battle result read successfully");
+        }
+
+
     }
 }
