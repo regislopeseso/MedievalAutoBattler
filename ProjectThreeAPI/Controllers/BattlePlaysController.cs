@@ -29,22 +29,6 @@ namespace MedievalAutoBattler.Controllers
             };
 
             return new JsonResult(response);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Get(BattlePlaysGetRequest request)
-        {
-            var (content, message) = await this._battlePlayService.GetResults(request);
-
-            var response = new Response<BattlePlaysGetResponse>()
-            {
-                Content = content,
-                Message = message
-            };
-
-            return new JsonResult(response);
-        }
-
-
+        }           
     }
 }

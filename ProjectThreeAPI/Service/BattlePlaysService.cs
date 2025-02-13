@@ -20,7 +20,7 @@ namespace MedievalAutoBattler.Service
 
         public async Task<(BattlePlaysRunResponse?, string)> Run(BattlePlaysRunRequest request)
         {
-            var (isValid, message) = CreateIsValid(request);
+            var (isValid, message) = RunIsValid(request);
             if (isValid == false)
             {
                 return (null, message);
@@ -167,8 +167,7 @@ namespace MedievalAutoBattler.Service
 
             return (content, message);
         }
-
-        public (bool, string) CreateIsValid(BattlePlaysRunRequest request)
+        public (bool, string) RunIsValid(BattlePlaysRunRequest request)
         {
             if (request == null)
             {
@@ -186,41 +185,6 @@ namespace MedievalAutoBattler.Service
             }
 
             return (true, String.Empty);
-        }
-
-
-
-
-
-        public async Task<(BattlePlaysGetResponse?, string)> GetResults(BattlePlaysGetRequest request)
-        {
-            if (request.BattleId == null && request.SaveId == null || request.BattleId <= 0 && request.SaveId <= 0)
-            {
-                return (null, "Error: informing either a BattleId or a SaveId is mandatory");
-            }
-
-            var battleDB = await this._daoDbContext
-                                 .Battles
-                                 .FirstOrDefaultAsync(a => a.Id == request.BattleId);
-
-            if (battleDB == null)
-            {
-                return (null, "Error: duels not found");
-            }
-
-            if (battleDB.IsFinished == false)
-            {
-                return (null, "Error: this duels is not yet finished");
-            }
-
-            var content = new BattleResultsReadResponse
-            {
-                Winner = battleDB.Winner
-            };
-
-            return (content, "Battle result read successfully");
-        }
-
-
+        }        
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request
 {
-    public class BattlePlaysGetRequest
+    public class BattleResultsGetResultsRequest
     {
-        public int? BattleId {  get; set; }
+        public int? BattleId { get; set; }
         public int? SaveId { get; set; }
     }
 }
