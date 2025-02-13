@@ -24,8 +24,7 @@ namespace MedievalAutoBattler.Service
 
             var saveDB = await this._daoDbcontext
                                    .Saves
-                                   .Include(a => a.Decks)
-                                   .ThenInclude(a => a.SaveDeckEntries)
+                                   .Include(a => a.SaveCardEntries)
                                    .ThenInclude(a => a.Card)
                                    .FirstOrDefaultAsync(a => a.IsDeleted == false && a.Id == request.SaveId);
 
@@ -65,9 +64,6 @@ namespace MedievalAutoBattler.Service
                 });
             }
 
-
-
-
             saveDB.Decks.Add(new Deck
             {
                 Name = "Booster " + saveDB.CountBoosters + 1,
@@ -76,7 +72,7 @@ namespace MedievalAutoBattler.Service
             saveDB.CountBoosters++;
             saveDB.Gold -= 5;
       
-            var playerCardsId = saveDB.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.CardId)).ToList();
+            var playerCardsId = saveDB.SaveCardEntries.Select(a => a.CardId).ToList();
 
             var message = "Booster oppened successfully";
 

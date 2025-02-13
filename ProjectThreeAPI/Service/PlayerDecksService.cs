@@ -33,7 +33,7 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: invalid SaveId");
             }
 
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds, request.SaveId);
 
             if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
             {
@@ -90,6 +90,7 @@ namespace MedievalAutoBattler.Service
             var deckDB = await this._daoDbContext
                                    .Decks
                                    .Include(a => a.SaveDeckEntries)
+                                   .ThenInclude(a => a.SaveCardEntry)
                                    .ThenInclude(a => a.Card)
                                    .FirstOrDefaultAsync(a => a.Id == request.DeckId);
 
@@ -98,15 +99,17 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: deck not found. Invalid DeckId");
             }
 
-            var oldCardIds = deckDB.SaveDeckEntries.Select(a => a.Id).ToList();
+            var oldCardIds = deckDB.SaveDeckEntries
+                                   .Select(a => a.SaveCardEntry.CardId)
+                                   .ToList();
 
             await this._daoDbContext
                       .SaveDeckEntries
-                      .Where(a => oldCardIds.Contains(a.CardId) && a.Deck.Id == request.DeckId)
+                      .Where(a => oldCardIds.Contains(a.SaveCardEntry.CardId) && a.Deck.Id == request.DeckId)
                       .ExecuteDeleteAsync();
 
 
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds);
+            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds, deckDB.Save.Id);
 
             if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
             {
@@ -165,25 +168,25 @@ namespace MedievalAutoBattler.Service
             return (null, "Delete successful");
         }
 
-        private async Task<(List<SaveDeckEntry>?, string)> GetNewDeck(List<int> cardIds)
+        private async Task<(List<SaveDeckEntry>?, string)> GetNewDeck(List<int> cardIds, int saveId)
         {
-            var cardsDB = await this._daoDbContext
-                                    .Cards
-                                    .Where(a => cardIds.Contains(a.Id))
+            var saveCardEntriesDB = await this._daoDbContext
+                                    .SaveCardEntries
+                                    .Where(a => a.SaveId == saveId && cardIds.Contains(a.Id))
                                     .ToListAsync();
 
-            if (cardsDB == null || cardsDB.Count == 0)
+            if (saveCardEntriesDB == null || saveCardEntriesDB.Count == 0)
             {
                 return (null, "Error: invalid cardIds");
             }
 
             var uniqueCardIds = cardIds.Distinct().ToList().Count;
 
-            if (uniqueCardIds != cardsDB.Count)
+            if (uniqueCardIds != saveCardEntriesDB.Count)
             {
                 var notFoundIds = cardIds.Distinct()
                                          .ToList()
-                                         .Except(cardsDB.Select(a => a.Id).ToList());
+                                         .Except(saveCardEntriesDB.Select(a => a.Id).ToList());
 
                 return (null, $"Error: invalid cardId: {string.Join(", ", notFoundIds)}");
             }
@@ -192,13 +195,13 @@ namespace MedievalAutoBattler.Service
 
             foreach (var id in cardIds)
             {
-                var newCard = cardsDB.FirstOrDefault(a => a.Id == id);
+                var newSaveCardEntry = saveCardEntriesDB.FirstOrDefault(a => a.Id == id);
 
-                if (newCard != null)
+                if (newSaveCardEntry != null)
                 {
                     saveDeckEntries.Add(new SaveDeckEntry
                     {
-                        Card = newCard,
+                        SaveCardEntry = newSaveCardEntry,
                     });
                 }
             }

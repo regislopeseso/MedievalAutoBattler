@@ -19,10 +19,10 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: invalid SaveId");
             }
 
-            var collection = await this._daoDbContext.Decks
+            var collection = await this._daoDbContext
+                                       .SaveCardEntries
                                        .Where(a => a.Save.Id == request.SaveId)
-                                       .SelectMany(a => a.SaveDeckEntries)
-                                       .Select(a => a.Card)               
+                                       .Select(a => a.Card)
                                        .ToListAsync();
 
             if (collection == null || collection.Count == 0)

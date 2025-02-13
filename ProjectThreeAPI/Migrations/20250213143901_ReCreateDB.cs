@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MedievalAutoBattler.Migrations
 {
     /// <inheritdoc />
-    public partial class RecreateDB : Migration
+    public partial class ReCreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -158,12 +158,39 @@ namespace MedievalAutoBattler.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "SaveCardEntries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SaveId = table.Column<int>(type: "int", nullable: false),
+                    CardId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaveCardEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SaveCardEntries_cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "cards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SaveCardEntries_saves_SaveId",
+                        column: x => x.SaveId,
+                        principalTable: "saves",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "SaveDeckEntries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CardId = table.Column<int>(type: "int", nullable: false),
+                    SaveCardEntryId = table.Column<int>(type: "int", nullable: false),
                     DeckId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -176,9 +203,9 @@ namespace MedievalAutoBattler.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SaveDeckEntries_cards_CardId",
-                        column: x => x.CardId,
-                        principalTable: "cards",
+                        name: "FK_SaveDeckEntries_SaveCardEntries_SaveCardEntryId",
+                        column: x => x.SaveCardEntryId,
+                        principalTable: "SaveCardEntries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -210,14 +237,24 @@ namespace MedievalAutoBattler.Migrations
                 column: "NpcId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaveDeckEntries_CardId",
-                table: "SaveDeckEntries",
+                name: "IX_SaveCardEntries_CardId",
+                table: "SaveCardEntries",
                 column: "CardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaveCardEntries_SaveId",
+                table: "SaveCardEntries",
+                column: "SaveId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SaveDeckEntries_DeckId",
                 table: "SaveDeckEntries",
                 column: "DeckId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaveDeckEntries_SaveCardEntryId",
+                table: "SaveDeckEntries",
+                column: "SaveCardEntryId");
         }
 
         /// <inheritdoc />
@@ -237,6 +274,9 @@ namespace MedievalAutoBattler.Migrations
 
             migrationBuilder.DropTable(
                 name: "Decks");
+
+            migrationBuilder.DropTable(
+                name: "SaveCardEntries");
 
             migrationBuilder.DropTable(
                 name: "cards");

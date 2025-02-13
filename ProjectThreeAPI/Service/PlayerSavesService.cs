@@ -1,6 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
+using MedievalAutoBattler.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service
@@ -26,16 +27,31 @@ namespace MedievalAutoBattler.Service
             var newSave = new Save
             {
                 Name = request.Name,
-                Decks = new List<Deck>
-                {
-                    new Deck
-                    {
-                        Name = "Starting Deck",
-                        SaveDeckEntries = await this.GetNewDeck()
-                    }
-                },
             };
-          
+
+            var initialSaveCardEntries = new List<SaveCardEntry>();
+            (initialSaveCardEntries, message) = await GetInitialSaveCardEntries(newSave.Id);
+            if (initialSaveCardEntries == null || initialSaveCardEntries.Count == 0)
+            {
+                return (null, message);
+            }
+
+            var initialSaveDeckEntries = new List<SaveDeckEntry>();
+            (initialSaveDeckEntries, message) = GetInitialSaveDeckEntries(initialSaveCardEntries);
+            if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
+            {
+                return (null, message);
+            }
+
+            newSave.SaveCardEntries = initialSaveCardEntries;
+
+            newSave.Decks.Add(
+                new Deck
+                {
+                    Name = "Initial Deck",
+                    SaveDeckEntries = initialSaveDeckEntries
+                });         
+
             this._daoDbContext.Add(newSave);
 
             await this._daoDbContext.SaveChangesAsync();
@@ -62,46 +78,115 @@ namespace MedievalAutoBattler.Service
 
             return (true, String.Empty);
         }
-        private async Task<List<SaveDeckEntry>> GetNewDeck()
+        private async Task<(List<SaveCardEntry>?, string)> GetInitialSaveCardEntries(int saveId)
         {
-            var cardsDB = await this._daoDbContext
+            var validInitialCardsDB = await this._daoDbContext
                                     .Cards
                                     .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
+                                    .Select(a => a.Id)
                                     .ToListAsync();
 
-            if (cardsDB == null || cardsDB.Count == 0)
+            if (validInitialCardsDB == null || validInitialCardsDB.Count == 0)
             {
-                return [];
+                return (null, "Error: no cards having power + upper hand < 5 were found");
             }
 
             var random = new Random();
-            var totalCards = cardsDB.Count;
-            var randomCards = new List<Card>();
+            var randomCardIds = new List<int>();
 
-            while (randomCards.Count < 5)
+            while (randomCardIds.Count < Constants.DeckSize)
             {
-                randomCards.Add(cardsDB[random.Next(totalCards)]);
+                randomCardIds.Add(validInitialCardsDB[random.Next(validInitialCardsDB.Count)]);
             }
 
-            var newDeck = new List<SaveDeckEntry>();
+            var initialSaveCardEntries = new List<SaveCardEntry>();
 
-            foreach (var card in randomCards)
+            foreach (var cardId in randomCardIds)
             {
-                if (card != null)
+                if (cardId != 0)
                 {
-                    newDeck.Add(new SaveDeckEntry()
+                    initialSaveCardEntries.Add(new SaveCardEntry()
                     {
-                        Card = card,
+                        SaveId = saveId,
+                        CardId = cardId,
                     });
+                }
+                else
+                {
+                    return (null, "Error: invalid cardId for initial deck");
                 }
             }
 
-            if(newDeck == null || newDeck.Count == 0)
+            return (initialSaveCardEntries, string.Empty);
+        }
+        private (List<SaveDeckEntry>?, string) GetInitialSaveDeckEntries(List<SaveCardEntry> initialSaveCardEntries)
+        {
+            var initialSaveDeckEntries = new List<SaveDeckEntry>();
+
+            foreach (var saveCardEntryId in initialSaveCardEntries.Select(a => a.Id))
             {
-                return [];
+                if (saveCardEntryId != 0)
+                {
+                    initialSaveDeckEntries.Add(new SaveDeckEntry()
+                    {
+                        SaveCardEntryId = saveCardEntryId,
+                    });
+                }
+                else
+                {
+                    return (null, "Error: invalid cardId for initial deck");
+                }
             }
 
-            return newDeck;
+            if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
+            {
+                return (null, "Error: invalid cardId for initial deck");
+            }
+
+            return (initialSaveDeckEntries, string.Empty);
         }
+
+
+        //private async Task<List<SaveDeckEntry>> GetNewDeck()
+        //{
+        //    var validInitialCardsDB = await this._daoDbContext
+        //                            .Cards
+        //                            .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
+        //                            .ToListAsync();
+
+        //    if (validInitialCardsDB == null || validInitialCardsDB.Count == 0)
+        //    {
+        //        return [];
+        //    }
+
+        //    var random = new Random();
+        //    var initialCards = validInitialCardsDB.Count;
+        //    var randomCardIds = new List<Card>();
+
+        //    while (randomCardIds.Count < 5)
+        //    {
+        //        randomCardIds.Add(validInitialCardsDB[random.Next(initialCards)]);
+        //    }
+
+        //    var initialSaveDeckEntries = new List<SaveDeckEntry>();
+
+        //    foreach (var cardId in randomCardIds)
+        //    {
+        //        if (cardId != null)
+        //        {
+        //            initialSaveDeckEntries.Add(new SaveDeckEntry()
+        //            {
+        //                Card = cardId,
+        //            });
+        //        }
+        //    }
+
+        //    if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
+        //    {
+        //        return [];
+        //    }
+
+        //    return initialSaveDeckEntries;
+        //}
     }
 }

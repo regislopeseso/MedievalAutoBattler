@@ -34,6 +34,7 @@ namespace MedievalAutoBattler.Service
                 .Include(a => a.Save)
                 .ThenInclude(a => a.Decks.Where(a => a.Id == request.DeckId))
                 .ThenInclude(a => a.SaveDeckEntries)
+                .ThenInclude(a => a.SaveCardEntry)
                 .ThenInclude(a => a.Card)
                 .Where(a => a.Id == request.BattleId && a.IsFinished == false)
                 .FirstOrDefaultAsync();
@@ -48,7 +49,7 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: invalid deck");
             }
 
-            var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.Card)).ToList();
+            var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.SaveCardEntry.Card)).ToList();
             var npcCardsDB = battleDB.Npc.Deck.Select(a => a.Card).ToList();
 
             var duels = new List<List<BattlesPlayBattleExecuteResponse_DuelingCard>>();

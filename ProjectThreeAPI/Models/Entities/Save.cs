@@ -18,7 +18,10 @@ namespace MedievalAutoBattler.Models.Entities
         public int CountBoosters { get; set; }
 
         [InverseProperty("Save")]
-        public required List<Deck> Decks { get; set; }
+        public List<SaveCardEntry> SaveCardEntries { get; set; }
+
+        [InverseProperty("Save")]
+        public List<Deck> Decks { get; set; }
 
         public bool IsDeleted { get; set; } = false;
 

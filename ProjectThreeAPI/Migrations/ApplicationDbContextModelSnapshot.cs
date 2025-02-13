@@ -200,7 +200,7 @@ namespace MedievalAutoBattler.Migrations
                     b.ToTable("saves");
                 });
 
-            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveDeckEntry", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveCardEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -211,14 +211,37 @@ namespace MedievalAutoBattler.Migrations
                     b.Property<int>("CardId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DeckId")
+                    b.Property<int>("SaveId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CardId");
 
+                    b.HasIndex("SaveId");
+
+                    b.ToTable("SaveCardEntries");
+                });
+
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveDeckEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DeckId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SaveCardEntryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("DeckId");
+
+                    b.HasIndex("SaveCardEntryId");
 
                     b.ToTable("SaveDeckEntries");
                 });
@@ -272,7 +295,7 @@ namespace MedievalAutoBattler.Migrations
                     b.Navigation("Npc");
                 });
 
-            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveDeckEntry", b =>
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveCardEntry", b =>
                 {
                     b.HasOne("MedievalAutoBattler.Models.Entities.Card", "Card")
                         .WithMany()
@@ -280,15 +303,34 @@ namespace MedievalAutoBattler.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("MedievalAutoBattler.Models.Entities.Save", "Save")
+                        .WithMany("SaveCardEntries")
+                        .HasForeignKey("SaveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Save");
+                });
+
+            modelBuilder.Entity("MedievalAutoBattler.Models.Entities.SaveDeckEntry", b =>
+                {
                     b.HasOne("MedievalAutoBattler.Models.Entities.Deck", "Deck")
                         .WithMany("SaveDeckEntries")
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Card");
+                    b.HasOne("MedievalAutoBattler.Models.Entities.SaveCardEntry", "SaveCardEntry")
+                        .WithMany()
+                        .HasForeignKey("SaveCardEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Deck");
+
+                    b.Navigation("SaveCardEntry");
                 });
 
             modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Deck", b =>
@@ -304,6 +346,8 @@ namespace MedievalAutoBattler.Migrations
             modelBuilder.Entity("MedievalAutoBattler.Models.Entities.Save", b =>
                 {
                     b.Navigation("Decks");
+
+                    b.Navigation("SaveCardEntries");
                 });
 #pragma warning restore 612, 618
         }
