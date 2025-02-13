@@ -44,7 +44,8 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: invalid battle");
             }
 
-            if (battleDB.Save.Decks == null || battleDB.Save.Decks.Count == 0)
+            var playerDeckDB = battleDB.Save.Decks.FirstOrDefault(a => a.Id == request.DeckId);
+            if (playerDeckDB == null || playerDeckDB.SaveDeckEntries.Count == 0 || playerDeckDB.IsDeleted == true)
             {
                 return (null, "Error: invalid deck");
             }

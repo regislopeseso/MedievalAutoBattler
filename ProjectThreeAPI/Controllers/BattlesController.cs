@@ -12,9 +12,9 @@ namespace MedievalAutoBattler.Controllers
         private readonly BattlesNewBattlesService _battlesNewBattlesService;
         private readonly BattlesPlaysService _battlesPlaysService;
         private readonly BattlesResultsService _battlesResultsService;
-        public BattlesController(BattlesNewBattlesService battlePlayersService, BattlesPlaysService battlePlaysService, BattlesResultsService battleResultsService)
+        public BattlesController(BattlesNewBattlesService battlesNewBattlesService, BattlesPlaysService battlePlaysService, BattlesResultsService battleResultsService)
         {
-            this._battlesNewBattlesService = battlePlayersService;
+            this._battlesNewBattlesService = battlesNewBattlesService;
             this._battlesPlaysService = battlePlaysService;
             this._battlesResultsService = battleResultsService;
         }     

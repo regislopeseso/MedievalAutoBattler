@@ -45,12 +45,16 @@ namespace MedievalAutoBattler.Service
 
             newSave.SaveCardEntries = initialSaveCardEntries;
 
-            newSave.Decks.Add(
+            newSave.Decks = new List<Deck>()
+            {
                 new Deck
                 {
                     Name = "Initial Deck",
                     SaveDeckEntries = initialSaveDeckEntries
-                });         
+                }
+            };
+
+
 
             this._daoDbContext.Add(newSave);
 
@@ -103,18 +107,16 @@ namespace MedievalAutoBattler.Service
 
             foreach (var cardId in randomCardIds)
             {
-                if (cardId != 0)
+                if (cardId == 0)
                 {
-                    initialSaveCardEntries.Add(new SaveCardEntry()
-                    {
-                        SaveId = saveId,
-                        CardId = cardId,
-                    });
+                    return (null, "Error: invalid cardId for initial SaveCardEntries");
                 }
-                else
+
+                initialSaveCardEntries.Add(new SaveCardEntry()
                 {
-                    return (null, "Error: invalid cardId for initial deck");
-                }
+                    SaveId = saveId,
+                    CardId = cardId,
+                });
             }
 
             return (initialSaveCardEntries, string.Empty);
@@ -123,70 +125,20 @@ namespace MedievalAutoBattler.Service
         {
             var initialSaveDeckEntries = new List<SaveDeckEntry>();
 
-            foreach (var saveCardEntryId in initialSaveCardEntries.Select(a => a.Id))
+            foreach (var initialSaveDeckEntry in initialSaveCardEntries)
             {
-                if (saveCardEntryId != 0)
+                initialSaveDeckEntries.Add(new SaveDeckEntry()
                 {
-                    initialSaveDeckEntries.Add(new SaveDeckEntry()
-                    {
-                        SaveCardEntryId = saveCardEntryId,
-                    });
-                }
-                else
-                {
-                    return (null, "Error: invalid cardId for initial deck");
-                }
+                    SaveCardEntry = initialSaveDeckEntry
+                });
             }
 
-            if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
+            if (initialSaveDeckEntries.Count == 0)
             {
                 return (null, "Error: invalid cardId for initial deck");
             }
 
             return (initialSaveDeckEntries, string.Empty);
         }
-
-
-        //private async Task<List<SaveDeckEntry>> GetNewDeck()
-        //{
-        //    var validInitialCardsDB = await this._daoDbContext
-        //                            .Cards
-        //                            .Where(a => ((a.Power + a.UpperHand) < 5) && (a.IsDeleted == false))
-        //                            .ToListAsync();
-
-        //    if (validInitialCardsDB == null || validInitialCardsDB.Count == 0)
-        //    {
-        //        return [];
-        //    }
-
-        //    var random = new Random();
-        //    var initialCards = validInitialCardsDB.Count;
-        //    var randomCardIds = new List<Card>();
-
-        //    while (randomCardIds.Count < 5)
-        //    {
-        //        randomCardIds.Add(validInitialCardsDB[random.Next(initialCards)]);
-        //    }
-
-        //    var initialSaveDeckEntries = new List<SaveDeckEntry>();
-
-        //    foreach (var cardId in randomCardIds)
-        //    {
-        //        if (cardId != null)
-        //        {
-        //            initialSaveDeckEntries.Add(new SaveDeckEntry()
-        //            {
-        //                Card = cardId,
-        //            });
-        //        }
-        //    }
-
-        //    if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
-        //    {
-        //        return [];
-        //    }
-
-        //    return initialSaveDeckEntries;
-        //}
     }
 }

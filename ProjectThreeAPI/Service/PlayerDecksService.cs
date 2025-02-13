@@ -1,7 +1,9 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request;
 using MedievalAutoBattler.Models.Dtos.Response;
 using MedievalAutoBattler.Models.Entities;
+using MedievalAutoBattler.Utilities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace MedievalAutoBattler.Service
 {
@@ -25,7 +27,8 @@ namespace MedievalAutoBattler.Service
 
             var saveDB = await this._daoDbContext
                                    .Saves
-                                   .Include(b => b.Decks)
+                                   .Include(b => b.SaveCardEntries)
+                                   .Include(a => a.Decks)
                                    .FirstOrDefaultAsync(a => a.Id == request.SaveId);
 
             if (saveDB == null)
@@ -33,18 +36,54 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: invalid SaveId");
             }
 
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds, request.SaveId);
+            #region Checking if requested CardIds are available in players collection
+            var playerSaveCardEntriesDB = saveDB.SaveCardEntries
+                                                .GroupBy(a => a.CardId)
+                                                .ToDictionary(cardId => cardId.Key, qty => qty.Count());
 
-            if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
+            // Group the requested cards to count their occurrences
+            var requestedCardCounts = request.CardIds
+                                             .GroupBy(cardId => cardId)
+                                             .ToDictionary(cardId => cardId.Key, qty => qty.Count());
+
+            // Check if the player has enough of each requested card
+            foreach (var (cardId, requestedCount) in requestedCardCounts)
             {
-                return (null, ErrorMessage);
+                var cardExists = playerSaveCardEntriesDB.TryGetValue(cardId, out int ownedCount);
+
+                if (cardExists == false)
+                {
+                    return (null, $"Error:  invalid cardIds {cardId}");
+                }
+
+                if (requestedCount > ownedCount)
+                {
+                    return (null, $"Error: Not enough copies of CardId {cardId}. Requested: {requestedCount}, Owned: {ownedCount}");
+                }
             }
+            #endregion
 
-            var newDeck = new Deck
+            var playerCardIdsDB = saveDB.SaveCardEntries.Select(a => a.CardId).ToList();
+
+
+            var filteredSaveCardEntries = saveDB.SaveCardEntries
+                                                .Where(entry => request.CardIds.Contains(entry.CardId))
+                                                .ToList();
+            var newDeck = new Deck()
             {
-                Name = request.Name,
-                SaveDeckEntries = newSaveDeckEntries
+                Name = request.Name
             };
+
+            var newSaveDeckEntries = new List<SaveDeckEntry>();
+            foreach (var saveCardEntry in filteredSaveCardEntries)
+            {
+                newSaveDeckEntries.Add(
+                    new SaveDeckEntry
+                    {
+                        SaveCardEntry = saveCardEntry,
+                    });
+            }
+            newDeck.SaveDeckEntries = newSaveDeckEntries;
 
             saveDB.Decks.Add(newDeck);
 
@@ -87,38 +126,74 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var deckDB = await this._daoDbContext
-                                   .Decks
-                                   .Include(a => a.SaveDeckEntries)
-                                   .ThenInclude(a => a.SaveCardEntry)
-                                   .ThenInclude(a => a.Card)
-                                   .FirstOrDefaultAsync(a => a.Id == request.DeckId);
+            var saveDB = await this._daoDbContext
+                                   .Saves
+                                   .Include(a => a.Decks)
+                                   .ThenInclude(a => a.SaveDeckEntries)
+                                   .Include(a => a.SaveCardEntries)
+                                   .FirstOrDefaultAsync(a => a.Decks.Any(deck => deck.Id == request.DeckId));
+
+            if (saveDB == null)
+            {
+                return (null, $"Error: invalid deckId");
+            }
+
+            var deckDB = saveDB.Decks.FirstOrDefault(a => a.Id == request.DeckId);
 
             if (deckDB == null)
             {
-                return (null, $"Error: deck not found. Invalid DeckId");
+                return (null, "Error: deck not found. Invalid DeckId");
             }
 
-            var oldCardIds = deckDB.SaveDeckEntries
-                                   .Select(a => a.SaveCardEntry.CardId)
-                                   .ToList();
-
-            await this._daoDbContext
-                      .SaveDeckEntries
-                      .Where(a => oldCardIds.Contains(a.SaveCardEntry.CardId) && a.Deck.Id == request.DeckId)
-                      .ExecuteDeleteAsync();
-
-
-            var (newSaveDeckEntries, ErrorMessage) = await this.GetNewDeck(request.CardIds, deckDB.Save.Id);
-
-            if (newSaveDeckEntries == null || newSaveDeckEntries.Count != 5)
+            if(deckDB.IsDeleted == true)
             {
-                return (null, ErrorMessage);
+                return (null, "Error: this deck was deleted");
             }
+
+            var oldSaveCardEntriesIds = deckDB.SaveDeckEntries
+                                              .Select(a => a.SaveCardEntry.Id)
+                                              .ToList();
+
+            #region Checking if requested CardIds are available in players collection
+            var playerSaveCardEntriesDB = saveDB.SaveCardEntries
+                                                .GroupBy(a => a.CardId)
+                                                .ToDictionary(cardId => cardId.Key, qty => qty.Count());
+
+            // Group the requested cards to count their occurrences
+            var requestedCardCounts = request.CardIds
+                                             .GroupBy(cardId => cardId)
+                                             .ToDictionary(cardId => cardId.Key, qty => qty.Count());
+
+            // Check if the player has enough of each requested card
+            foreach (var (cardId, requestedCount) in requestedCardCounts)
+            {
+                var cardExists = playerSaveCardEntriesDB.TryGetValue(cardId, out int ownedCount);
+
+                if (cardExists == false)
+                {
+                    return (null, $"Error:  invalid cardIds {cardId}");
+                }
+
+                if (requestedCount > ownedCount)
+                {
+                    return (null, $"Error: Not enough copies of CardId {cardId}. Requested: {requestedCount}, Owned: {ownedCount}");
+                }
+            }
+            #endregion       
+
+            var filteredSaveCardEntries = saveDB.SaveCardEntries
+                                               .Where(entry => request.CardIds.Contains(entry.CardId))
+                                               .ToList();
 
             deckDB.Name = request.Name;
-            deckDB.SaveDeckEntries = newSaveDeckEntries;
 
+            var updatedSaveDeckEntries = new List<SaveDeckEntry>();
+          
+            for (int i = 0; i < Constants.DeckSize; i++)
+            {
+                deckDB.SaveDeckEntries[i].SaveCardEntry = filteredSaveCardEntries[i];
+            }
+           
             await this._daoDbContext.SaveChangesAsync();
 
             return (null, "Deck updated successfully");
@@ -134,7 +209,7 @@ namespace MedievalAutoBattler.Service
             if (string.IsNullOrEmpty(request.Name) == true)
             {
                 return (false, "Error: the deck's name is mandatory");
-            }       
+            }
 
             if (request.CardIds == null || request.CardIds.Count == 0 || request.CardIds.Count != 5)
             {
@@ -165,48 +240,8 @@ namespace MedievalAutoBattler.Service
                       .Where(a => a.Id == request.DeckId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            return (null, "Delete successful");
+            return (null, "Delete deleted successfully");
         }
 
-        private async Task<(List<SaveDeckEntry>?, string)> GetNewDeck(List<int> cardIds, int saveId)
-        {
-            var saveCardEntriesDB = await this._daoDbContext
-                                    .SaveCardEntries
-                                    .Where(a => a.SaveId == saveId && cardIds.Contains(a.Id))
-                                    .ToListAsync();
-
-            if (saveCardEntriesDB == null || saveCardEntriesDB.Count == 0)
-            {
-                return (null, "Error: invalid cardIds");
-            }
-
-            var uniqueCardIds = cardIds.Distinct().ToList().Count;
-
-            if (uniqueCardIds != saveCardEntriesDB.Count)
-            {
-                var notFoundIds = cardIds.Distinct()
-                                         .ToList()
-                                         .Except(saveCardEntriesDB.Select(a => a.Id).ToList());
-
-                return (null, $"Error: invalid cardId: {string.Join(", ", notFoundIds)}");
-            }
-
-            var saveDeckEntries = new List<SaveDeckEntry>();
-
-            foreach (var id in cardIds)
-            {
-                var newSaveCardEntry = saveCardEntriesDB.FirstOrDefault(a => a.Id == id);
-
-                if (newSaveCardEntry != null)
-                {
-                    saveDeckEntries.Add(new SaveDeckEntry
-                    {
-                        SaveCardEntry = newSaveCardEntry,
-                    });
-                }
-            }
-
-            return (saveDeckEntries, "The deck was deleted successfully");
-        }
     }
 }

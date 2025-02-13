@@ -4,6 +4,6 @@
     {
         public int SaveId { get; set; }
         public required string Name  { get; set; }
-        public List<int> CardIds { get; set; }
+        public List<int>? CardIds { get; set; }
     }
 }

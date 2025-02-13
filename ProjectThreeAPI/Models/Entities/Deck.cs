@@ -12,7 +12,7 @@ namespace MedievalAutoBattler.Models.Entities
         public required string Name { get; set; }
 
         [InverseProperty("Deck")]
-        public required List<SaveDeckEntry> SaveDeckEntries { get; set; }
+        public List<SaveDeckEntry> SaveDeckEntries { get; set; }
             
         [InverseProperty("Decks")]
         public Save Save { get; set; }
