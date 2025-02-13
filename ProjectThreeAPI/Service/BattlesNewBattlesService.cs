@@ -5,16 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service
 {
-    public class BattleSavesService
+    public class BattlesNewBattlesService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public BattleSavesService(ApplicationDbContext daoDbContext)
+        public BattlesNewBattlesService(ApplicationDbContext daoDbContext)
         {
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(BattleSavesCreateResponse?, string)> Create(BattleSavesCreateRequest request)
+        public async Task<(BattlesNewBattleCreateResponse?, string)> Create(BattlesNewBattleCreateRequest request)
         {
             if (request.SaveId <= 0)
             {
@@ -54,7 +54,7 @@ namespace MedievalAutoBattler.Service
 
             await this._daoDbContext.SaveChangesAsync();
 
-            var content = new BattleSavesCreateResponse
+            var content = new BattlesNewBattleCreateResponse
             {
                 BattleId = newMatch.Id,
                 NpcName = randomNpc.Name

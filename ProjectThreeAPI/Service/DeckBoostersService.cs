@@ -13,7 +13,7 @@ namespace MedievalAutoBattler.Service
             _daoDbcontext = daoDbcontext;
         }
 
-        public async Task<(DeckBoostersCreateResponse?, string)> OpenBooster(DeckBoostersCreateRequest request)
+        public async Task<(List<DeckBoostersCreateResponse>?, string)> OpenBooster(DeckBoostersCreateRequest request)
         {
             if(request.SaveId <= 0)
             {
@@ -25,7 +25,8 @@ namespace MedievalAutoBattler.Service
             var saveDB = await this._daoDbcontext
                                    .Saves
                                    .Include(a => a.Decks)
-                                   .ThenInclude(b => b.SaveDeckEntries)
+                                   .ThenInclude(a => a.SaveDeckEntries)
+                                   .ThenInclude(a => a.Card)
                                    .FirstOrDefaultAsync(a => a.IsDeleted == false && a.Id == request.SaveId);
 
             if (saveDB == null)
@@ -37,19 +38,35 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: not enough gold pieces");
             }
 
-            var cardsDB = await this._daoDbcontext
+            var allCardsIdDB = await this._daoDbcontext
                                 .Cards
-                                .ToListAsync();            
-            
-            var booster = cardsDB.OrderBy(a => random.Next()).Take(3).ToList();
-            
-            foreach (var card in booster)
+                                .Select(a => a.Id)
+                                .ToListAsync();
+
+            if(allCardsIdDB == null || allCardsIdDB.Count == 0)
             {
-                newSaveDeckEntries.Add(new SaveDeckEntry 
+                return (null, "Error: no cards available");
+            }
+            
+            var booster = allCardsIdDB.OrderBy(a => random.Next()).Take(3).ToList();
+
+            if (booster == null || booster.Count == 0)
+            {
+                return (null, "Error: no booster available");
+            }
+
+            var content = new List<DeckBoostersCreateResponse>();
+
+            foreach (var cardId in booster)
+            {
+                content.Add(new DeckBoostersCreateResponse
                 {
-                    Card = card,
+                    CardId = cardId
                 });
             }
+
+
+
 
             saveDB.Decks.Add(new Deck
             {
@@ -58,9 +75,7 @@ namespace MedievalAutoBattler.Service
             });
             saveDB.CountBoosters++;
             saveDB.Gold -= 5;
-
-            var allCardsIdDB = cardsDB.Select(a => a.Id).ToList();
-
+      
             var playerCardsId = saveDB.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.CardId)).ToList();
 
             var message = "Booster oppened successfully";

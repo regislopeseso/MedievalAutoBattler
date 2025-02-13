@@ -22,7 +22,7 @@ namespace MedievalAutoBattler.Controllers
         {
             var (content, message) = await this._deckBoostersService.OpenBooster(request);
 
-            var response = new Response<DeckBoostersCreateResponse>
+            var response = new Response<List<DeckBoostersCreateResponse>>()
             {
                 Content = content,
                 Message = message

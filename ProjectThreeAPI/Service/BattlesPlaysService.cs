@@ -9,16 +9,16 @@ using System.Reflection.Metadata;
 
 namespace MedievalAutoBattler.Service
 {
-    public class BattlePlaysService
+    public class BattlesPlaysService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public BattlePlaysService(ApplicationDbContext daoDbContext)
+        public BattlesPlaysService(ApplicationDbContext daoDbContext)
         {
             this._daoDbContext = daoDbContext;
         }
 
-        public async Task<(BattlePlaysRunResponse?, string)> Run(BattlePlaysRunRequest request)
+        public async Task<(BattlesPlayBattleExecuteResponse?, string)> Run(BattlesPlayBattleExecuteRequest request)
         {
             var (isValid, message) = RunIsValid(request);
             if (isValid == false)
@@ -51,7 +51,7 @@ namespace MedievalAutoBattler.Service
             var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.Card)).ToList();
             var npcCardsDB = battleDB.Npc.Deck.Select(a => a.Card).ToList();
 
-            var duels = new List<List<BattlePlaysRunResponse_DuelingCard>>();
+            var duels = new List<List<BattlesPlayBattleExecuteResponse_DuelingCard>>();
 
             for (int i = 0; i < Constants.DeckSize; i++)
             {
@@ -60,9 +60,9 @@ namespace MedievalAutoBattler.Service
                 var npcCardFullPower = Helper.GetCardFullPower(npcCardsDB[i].Power, npcCardsDB[i].UpperHand, (int)npcCardsDB[i].Type, (int)playerCardsDB[i].Type);
 
                 duels.Add(
-                    new List<BattlePlaysRunResponse_DuelingCard>
+                    new List<BattlesPlayBattleExecuteResponse_DuelingCard>
                     {
-                        new BattlePlaysRunResponse_DuelingCard
+                        new BattlesPlayBattleExecuteResponse_DuelingCard
                         {
                             CardName = playerCardsDB[i].Name,
                             CardType = playerCardsDB[i].Type,
@@ -71,7 +71,7 @@ namespace MedievalAutoBattler.Service
                             CardFullPower = playerCardFullPower,
                             DualResult = Helper.GetDuelingPoints(playerCardFullPower, npcCardFullPower),
                         },
-                        new BattlePlaysRunResponse_DuelingCard
+                        new BattlesPlayBattleExecuteResponse_DuelingCard
                         {
                             CardName = npcCardsDB[i].Name,
                             CardType = npcCardsDB[i].Type,
@@ -89,7 +89,7 @@ namespace MedievalAutoBattler.Service
 
             var winner = battleDB.Save.Name;
 
-            var content = new BattlePlaysRunResponse();
+            var content = new BattlesPlayBattleExecuteResponse();
 
             if (npcTotalPoints > playerTotalPoints)
             {
@@ -167,7 +167,7 @@ namespace MedievalAutoBattler.Service
 
             return (content, message);
         }
-        public (bool, string) RunIsValid(BattlePlaysRunRequest request)
+        public (bool, string) RunIsValid(BattlesPlayBattleExecuteRequest request)
         {
             if (request == null)
             {

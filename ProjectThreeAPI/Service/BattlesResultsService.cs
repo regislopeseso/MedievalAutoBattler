@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service
 {
-    public class BattleResultsService
+    public class BattlesResultsService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public BattleResultsService(ApplicationDbContext daoDBContext)
+        public BattlesResultsService(ApplicationDbContext daoDBContext)
         {
             this._daoDbContext = daoDBContext;
         }
 
-        public async Task<(BattleResultsGetResultsResponse?, string)> GetResults(BattleResultsGetResultsRequest request)
+        public async Task<(BattlesGetResultsResponse?, string)> GetResults(BattlesGetResultsRequest request)
         {
             if (request.BattleId == null && request.SaveId == null || request.BattleId <= 0 && request.SaveId <= 0)
             {
@@ -21,7 +21,7 @@ namespace MedievalAutoBattler.Service
             }
 
 
-            var content = new BattleResultsGetResultsResponse();
+            var content = new BattlesGetResultsResponse();
 
             if (request.BattleId != null && request.BattleId > 0)
             {

@@ -13,9 +13,9 @@ builder.Services.AddScoped<PlayerSavesService>();
 builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<PlayerCardsService>();
 builder.Services.AddScoped<PlayerDecksService>();
-builder.Services.AddScoped<BattleSavesService>();
-builder.Services.AddScoped<BattlePlaysService>();
-builder.Services.AddScoped<BattleResultsService>();
+builder.Services.AddScoped<BattlesNewBattlesService>();
+builder.Services.AddScoped<BattlesPlaysService>();
+builder.Services.AddScoped<BattlesResultsService>();
 builder.Services.AddScoped<DeckBoostersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
