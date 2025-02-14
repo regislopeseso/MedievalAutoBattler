@@ -1,8 +1,7 @@
 ﻿using MedievalAutoBattler.Models.Dtos.Request.Admin;
-using MedievalAutoBattler.Models.Dtos.Response.Admin;
 using MedievalAutoBattler.Models.Dtos.Response;
+using MedievalAutoBattler.Models.Dtos.Response.Admin;
 using MedievalAutoBattler.Service.Admin;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MedievalAutoBattler.Controllers
@@ -53,7 +52,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCards(AdminsGetCardsRequest request)
+        public async Task<IActionResult> GetCards(AdminsGetCardsRequest request)//Corrigir a filtragem desse Enpoint
         {
             var (content, message) = await this._adminCardsService.Get(request);
 
@@ -67,7 +66,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditCard(AdminsEditCardRequest request)
+        public async Task<IActionResult> EditCard(AdminsEditCardRequest request)//Corrigir a verificação do nome nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres
         {
             var (content, message) = await this._adminCardsService.Edit(request);
 
@@ -95,7 +94,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNpc(AdminsCreateNpcRequest request)
+        public async Task<IActionResult> CreateNpc(AdminsCreateNpcRequest request)//Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres
         {
             var (content, message) = await this._adminNpcsService.Create(request);
 
@@ -123,7 +122,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetNpcs(AdminsGetNpcsRequest request)
+        public async Task<IActionResult> GetNpcs(AdminsGetNpcsRequest request) //Corrigir a filtragem desse Enpoint
         {
             var (content, message) = await this._adminNpcsService.Get(request);
 
@@ -137,7 +136,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditNpc(AdminsEditNpcRequest request)
+        public async Task<IActionResult> EditNpc(AdminsEditNpcRequest request) //Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres e ajustar a filtragem de id's errados para listá-los tal como no edit da carta
         {
             var (content, message) = await this._adminNpcsService.Edit(request);
 
@@ -151,7 +150,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteNpc(AdminsDeleteNpcRequest request)
+        public async Task<IActionResult> DeleteNpc(AdminsDeleteNpcRequest request) //filtrar para o caso de não informar, nada request == null "Error: no information provided"
         {
             var (content, message) = await this._adminNpcsService.Delete(request);
 

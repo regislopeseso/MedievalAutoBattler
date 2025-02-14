@@ -67,9 +67,9 @@ namespace MedievalAutoBattler.Migrations
                     CountVictories = table.Column<int>(type: "int", nullable: false),
                     CountDefeats = table.Column<int>(type: "int", nullable: false),
                     CountBoosters = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     AllCardsCollectedTrophy = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    AllNpcsDefeatedTrophy = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    AllNpcsDefeatedTrophy = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {

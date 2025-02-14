@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250213143901_ReCreateDB")]
+    [Migration("20250214170708_ReCreateDB")]
     partial class ReCreateDB
     {
         /// <inheritdoc />
