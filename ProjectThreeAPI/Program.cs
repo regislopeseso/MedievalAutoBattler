@@ -1,4 +1,6 @@
-using MedievalAutoBattler.Service;
+using MedievalAutoBattler.Service.Admin;
+using MedievalAutoBattler.Service.Battles;
+using MedievalAutoBattler.Service.Players;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -9,14 +11,14 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<AdminCardsService>();
 builder.Services.AddScoped<AdminNpcsService>();
-builder.Services.AddScoped<PlayerSavesService>();
-builder.Services.AddScoped<PlayerStatsService>();
-builder.Services.AddScoped<PlayerCardsService>();
-builder.Services.AddScoped<PlayerDecksService>();
+builder.Services.AddScoped<PlayersSavesService>();
+builder.Services.AddScoped<PlayersStatsService>();
+builder.Services.AddScoped<PlayersCardsService>();
+builder.Services.AddScoped<PlayersDecksService>();
 builder.Services.AddScoped<BattlesNewBattlesService>();
 builder.Services.AddScoped<BattlesPlaysService>();
 builder.Services.AddScoped<BattlesResultsService>();
-builder.Services.AddScoped<DeckBoostersService>();
+builder.Services.AddScoped<PlayersBoostersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

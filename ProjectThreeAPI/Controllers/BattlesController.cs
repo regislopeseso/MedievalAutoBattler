@@ -1,6 +1,7 @@
-﻿using MedievalAutoBattler.Models.Dtos.Request;
+﻿using MedievalAutoBattler.Models.Dtos.Request.Battles;
 using MedievalAutoBattler.Models.Dtos.Response;
-using MedievalAutoBattler.Service;
+using MedievalAutoBattler.Models.Dtos.Response.Battles;
+using MedievalAutoBattler.Service.Battles;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MedievalAutoBattler.Controllers
