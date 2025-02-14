@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Response.Admin
 {
-    public class AdminNpcsDeleteResponse
+    public class AdminsDeleteNpcResponse
     {
     }
 }

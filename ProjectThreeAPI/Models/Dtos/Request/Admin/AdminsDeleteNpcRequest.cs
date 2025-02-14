@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
-    public class AdminNpcsDeleteRequest
+    public class AdminsDeleteNpcRequest
     {
         public int NpcId { get; set; }
     }

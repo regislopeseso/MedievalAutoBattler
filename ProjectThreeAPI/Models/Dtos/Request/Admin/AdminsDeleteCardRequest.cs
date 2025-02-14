@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
-    public class AdminCardsDeleteRequest
+    public class AdminsDeleteCardRequest
     {
         public int CardId { get; set; }
     }

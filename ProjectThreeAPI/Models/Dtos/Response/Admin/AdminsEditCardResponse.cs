@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Response.Admin
 {
-    public class AdminNpcsFlexUpdateResponse
+    public class AdminsEditCardResponse
     {
     }
 }

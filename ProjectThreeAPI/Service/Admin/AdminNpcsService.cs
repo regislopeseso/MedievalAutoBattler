@@ -23,7 +23,7 @@ namespace MedievalAutoBattler.Service.Admin
             _daoDbContext = daoDBcontext;
         }
 
-        public async Task<(AdminNpcsCreateResponse?, string)> Create(AdminNpcsCreateRequest request)
+        public async Task<(AdminsCreateNpcResponse?, string)> Create(AdminsCreateNpcRequest request)
         {
             var (isValid, message) = CreateIsValid(request);
 
@@ -63,7 +63,7 @@ namespace MedievalAutoBattler.Service.Admin
 
             return (null, "NPC created successfully");
         }
-        public (bool, string) CreateIsValid(AdminNpcsCreateRequest request)
+        public (bool, string) CreateIsValid(AdminsCreateNpcRequest request)
         {
             if (request == null)
             {
@@ -88,7 +88,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminNpcsCreateResponse?, string)> Seed(AdminNpcsCreateRequest_seed request)
+        public async Task<(AdminsSeedNpcsResponse?, string)> Seed(AdminsSeedNpcsRequest request)
         {
             var cardsDB = await _daoDbContext
                                     .Cards
@@ -398,7 +398,7 @@ namespace MedievalAutoBattler.Service.Admin
             }
         }
 
-        public async Task<(List<AdminNpcsReadResponse>, string)> GetNpcs(AdminNpcsGetRequest request)
+        public async Task<(List<AdminsGetNpcsResponse>, string)> Get(AdminsGetNpcsRequest request)
         {
             var contentQueriable = _daoDbContext
                               .Npcs
@@ -420,13 +420,13 @@ namespace MedievalAutoBattler.Service.Admin
             }
 
             var content = await contentQueriable
-                .Select(a => new AdminNpcsReadResponse
+                .Select(a => new AdminsGetNpcsResponse
                 {
                     Id = a.Id,
                     Name = a.Name,
                     Description = a.Description,
                     Deck = a.Deck
-                        .Select(b => new AdminNpcGetResponse_Deck
+                        .Select(b => new AdminsGetNpcsResponse_Deck
                         {
                             Id = b.Id,
                             Name = b.Card.Name,
@@ -445,7 +445,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (content, message);
         }
 
-        public async Task<(AdminNpcsFlexUpdateResponse?, string)> FlexUpdate(AdminNpcsFlexUpdateRequest request)
+        public async Task<(AdminsFlexEditNpcResponse?, string)> FlexEdit(AdminsFlexEditNpcRequest request)
         {
             var (isValid, message) = FlexUpdateIsValid(request);
 
@@ -517,7 +517,7 @@ namespace MedievalAutoBattler.Service.Admin
 
             return (null, "NPC updated successfully");
         }
-        private static (bool, string) FlexUpdateIsValid(AdminNpcsFlexUpdateRequest request)
+        private static (bool, string) FlexUpdateIsValid(AdminsFlexEditNpcRequest request)
         {
             if (request == null)
             {
@@ -532,7 +532,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminNpcsUpdateResponse?, string)> Update(AdminNpcsUpdateRequest request)
+        public async Task<(AdminsEditNpcResponse?, string)> Edit(AdminsEditNpcRequest request)
         {
             var (isValid, message) = UpdateIsValid(request);
 
@@ -587,7 +587,7 @@ namespace MedievalAutoBattler.Service.Admin
 
             return (null, "NPC updated successfully");
         }
-        private (bool, string) UpdateIsValid(AdminNpcsUpdateRequest request)
+        private (bool, string) UpdateIsValid(AdminsEditNpcRequest request)
         {
             if (request == null)
             {
@@ -612,7 +612,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminNpcsDeleteResponse?, string)> Delete(AdminNpcsDeleteRequest request)
+        public async Task<(AdminsDeleteNpcResponse?, string)> Delete(AdminsDeleteNpcRequest request)
         {
             if (request.NpcId <= 0)
             {

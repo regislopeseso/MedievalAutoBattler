@@ -18,7 +18,7 @@ namespace MedievalAutoBattler.Service.Battles
             _daoDbContext = daoDbContext;
         }
 
-        public async Task<(BattlesPlayBattleExecuteResponse?, string)> Run(BattlesPlayBattleExecuteRequest request)
+        public async Task<(BattlesPlayBattleExecuteResponse?, string)> Play(BattlesPlayBattleExecuteRequest request)
         {
             var (isValid, message) = RunIsValid(request);
             if (isValid == false)

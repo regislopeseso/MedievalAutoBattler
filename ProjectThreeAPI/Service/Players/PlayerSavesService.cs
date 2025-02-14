@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service.Players
 {
-    public class PlayersSavesService
+    public class PlayerSavesService
     {
         public readonly ApplicationDbContext _daoDbContext;
 
-        public PlayersSavesService(ApplicationDbContext daoDbContext)
+        public PlayerSavesService(ApplicationDbContext daoDbContext)
         {
             _daoDbContext = daoDbContext;
         }

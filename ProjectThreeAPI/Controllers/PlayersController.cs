@@ -11,25 +11,25 @@ namespace MedievalAutoBattler.Controllers
     [Route("players/[action]")]
     public class PlayersController : ControllerBase
     {
-        private readonly PlayersSavesService _playersSavesService;
-        private readonly PlayersCardsService _playersCardsService;
-        private readonly PlayersDecksService _playersDecksService;
-        private readonly PlayersStatsService _playersStatsService;
-        private readonly PlayersBoostersService _playersBoostersService;
+        private readonly PlayerSavesService _playerSavesService;
+        private readonly PlayerCardsService _playerCardsService;
+        private readonly PlayerDecksService _playerDecksService;
+        private readonly PlayerStatsService _playerStatsService;
+        private readonly PlayerBoostersService _playerBoostersService;
 
-        public PlayersController(PlayersSavesService playersSavesService, PlayersCardsService playersCardsService, PlayersDecksService playersDecksService, PlayersStatsService playersStatsService, PlayersBoostersService playersBoostersService)
+        public PlayersController(PlayerSavesService playerSavesService, PlayerCardsService playerCardsService, PlayerDecksService playerDecksService, PlayerStatsService playerStatsService, PlayerBoostersService playerBoostersService)
         {
-            this._playersSavesService = playersSavesService;
-            this._playersCardsService = playersCardsService;
-            this._playersDecksService = playersDecksService;
-            this._playersStatsService = playersStatsService;
-            this._playersBoostersService = playersBoostersService;
+            this._playerSavesService = playerSavesService;
+            this._playerCardsService = playerCardsService;
+            this._playerDecksService = playerDecksService;
+            this._playerStatsService = playerStatsService;
+            this._playerBoostersService = playerBoostersService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateSave(PlayersCreateNewSaveRequest request)
         {
-            var (content, message) = await this._playersSavesService.Create(request);
+            var (content, message) = await this._playerSavesService.Create(request);
 
             var response = new Response<PlayersCreateNewSaveResponse>
             {
@@ -43,7 +43,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCards(PlayersGetCardsRequest request)
         {
-            var (content, message) = await this._playersCardsService.Get(request);
+            var (content, message) = await this._playerCardsService.Get(request);
 
             var response = new Response<List<PlayersGetCardsResponse>>()
             {
@@ -57,7 +57,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDeck(PlayersCreateNewDeckRequest request)
         {
-            var (content, message) = await this._playersDecksService.Create(request);
+            var (content, message) = await this._playerDecksService.Create(request);
 
             var response = new Response<PlayersCreateNewDeckResponse>
             {
@@ -71,7 +71,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpPut]
         public async Task<IActionResult> EditDeck(PlayersEditDeckRequest request)
         {
-            var (content, message) = await this._playersDecksService.Edit(request);
+            var (content, message) = await this._playerDecksService.Edit(request);
 
             var response = new Response<PlayersEditDeckResponse>
             {
@@ -85,7 +85,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteDeck(PlayersDeleteDeckRequest request) //PlayersDeleteDeck
         {
-            var (content, message) = await this._playersDecksService.Delete(request);
+            var (content, message) = await this._playerDecksService.Delete(request);
 
             var response = new Response<PlayersDeleteDeckResponse>()
             {
@@ -99,7 +99,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStats(PlayersGetStatsRequest request) 
         {
-            var (content, message) = await this._playersStatsService.Get(request);
+            var (content, message) = await this._playerStatsService.Get(request);
 
             var response = new Response<PlayersGetStatsResponse>()
             {
@@ -113,7 +113,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpPost]
         public async Task<IActionResult> OpenBooster(PlayersOpenBoosterRequest request)
         {
-            var (content, message) = await this._playersBoostersService.Open(request);
+            var (content, message) = await this._playerBoostersService.Open(request);
 
             var response = new Response<List<PlayersOpenBoosterResponse>>()
             {

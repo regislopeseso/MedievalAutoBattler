@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace MedievalAutoBattler.Service.Players
 {
-    public class PlayersBoostersService
+    public class PlayerBoostersService
     {
         private readonly ApplicationDbContext _daoDbcontext;
-        public PlayersBoostersService(ApplicationDbContext daoDbcontext)
+        public PlayerBoostersService(ApplicationDbContext daoDbcontext)
         {
             _daoDbcontext = daoDbcontext;
         }

@@ -21,7 +21,7 @@ namespace MedievalAutoBattler.Controllers
         }     
 
         [HttpPost]
-        public async Task<IActionResult> NewBattle(BattlesNewBattleCreateRequest request)
+        public async Task<IActionResult> CreateBattle(BattlesNewBattleCreateRequest request)
         {
             var (content, message) = await this._battlesNewBattlesService.Create(request);
 
@@ -37,7 +37,7 @@ namespace MedievalAutoBattler.Controllers
         [HttpPost]
         public async Task<IActionResult> PlayBattle(BattlesPlayBattleExecuteRequest request)
         {
-            var (content, message) = await this._battlesPlaysService.Run(request);
+            var (content, message) = await this._battlesPlaysService.Play(request);
 
             var response = new Response<BattlesPlayBattleExecuteResponse>()
             {

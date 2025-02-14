@@ -2,7 +2,7 @@
 
 namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
-    public class AdminCardsCreateRequest
+    public class AdminsCreateCardRequest
     {
         public string Name { get; set; }
         public int Power { get; set; }

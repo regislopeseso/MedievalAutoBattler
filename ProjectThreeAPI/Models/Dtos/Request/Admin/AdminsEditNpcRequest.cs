@@ -2,7 +2,7 @@
 
 namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
-    public class AdminNpcsUpdateRequest
+    public class AdminsEditNpcRequest
     {
         public int Id { get; set; }
         public string Name { get; set; }

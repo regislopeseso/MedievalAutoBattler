@@ -7,11 +7,11 @@ using System.Linq;
 
 namespace MedievalAutoBattler.Service.Players
 {
-    public class PlayersDecksService
+    public class PlayerDecksService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public PlayersDecksService(ApplicationDbContext daoDbContext)
+        public PlayerDecksService(ApplicationDbContext daoDbContext)
         {
             _daoDbContext = daoDbContext;
         }

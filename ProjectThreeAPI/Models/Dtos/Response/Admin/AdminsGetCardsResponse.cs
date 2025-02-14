@@ -2,7 +2,7 @@
 
 namespace MedievalAutoBattler.Models.Dtos.Response.Admin
 {
-    public class AdminCardsGetResponse
+    public class AdminsGetCardsResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }

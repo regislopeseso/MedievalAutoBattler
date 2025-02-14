@@ -16,7 +16,7 @@ namespace MedievalAutoBattler.Service.Admin
             _daoDbContext = daoDbContext;
         }
 
-        public async Task<(AdminCardsCreateResponse?, string)> Create(AdminCardsCreateRequest request)
+        public async Task<(AdminsCreateCardResponse?, string)> Create(AdminsCreateCardRequest request)
         {
             var (isValid, message) = CreateIsValid(request);
 
@@ -49,7 +49,7 @@ namespace MedievalAutoBattler.Service.Admin
 
             return (null, "Card created successfully");
         }
-        public (bool, string) CreateIsValid(AdminCardsCreateRequest request)
+        public (bool, string) CreateIsValid(AdminsCreateCardRequest request)
         {
             if (request == null)
             {
@@ -83,7 +83,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminCardsCreateResponse?, string)> Seed(AdminCardsCreateRequest_seed request)
+        public async Task<(AdminsSeedCardsResponse?, string)> Seed(AdminsSeedCardsRequest request)
         {
             var cardsSeed = new List<Card>();
 
@@ -124,7 +124,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (null, "Cards seeded successfully");
         }
 
-        public async Task<(List<AdminCardsGetResponse>, string)> GetCards(AdminCardsGetRequest request)
+        public async Task<(List<AdminsGetCardsResponse>, string)> Get(AdminsGetCardsRequest request)
         {
             var contentQueriable = _daoDbContext
                                        .Cards
@@ -146,7 +146,7 @@ namespace MedievalAutoBattler.Service.Admin
             }
 
             var content = await contentQueriable
-                                    .Select(a => new AdminCardsGetResponse
+                                    .Select(a => new AdminsGetCardsResponse
                                     {
                                         Id = a.Id,
                                         Name = a.Name,
@@ -162,7 +162,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (content, "All cards listed successfully");
         }
 
-        public async Task<(AdminCardsUpdateResponse?, string)> Update(AdminCardsUpdateRequest request)
+        public async Task<(AdminsEditCardResponse?, string)> Edit(AdminsEditCardRequest request)
         {
             var (isValid, message) = UpdateIsValid(request);
 
@@ -190,7 +190,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (null, "Card updated successfully");
         }
 
-        private (bool, string) UpdateIsValid(AdminCardsUpdateRequest card)
+        private (bool, string) UpdateIsValid(AdminsEditCardRequest card)
         {
             if (card == null)
             {
@@ -224,7 +224,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminCardsDeleteResponse?, string)> Delete(AdminCardsDeleteRequest request)
+        public async Task<(AdminsDeleteCardResponse?, string)> Delete(AdminsDeleteCardRequest request)
         {
             if (request.CardId <= 0)
             {

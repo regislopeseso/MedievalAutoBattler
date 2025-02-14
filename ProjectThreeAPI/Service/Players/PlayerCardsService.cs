@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedievalAutoBattler.Service.Players
 {
-    public class PlayersCardsService
+    public class PlayerCardsService
     {
         public readonly ApplicationDbContext _daoDbContext;
-        public PlayersCardsService(ApplicationDbContext daoDbContext)
+        public PlayerCardsService(ApplicationDbContext daoDbContext)
         {
             _daoDbContext = daoDbContext;
         }

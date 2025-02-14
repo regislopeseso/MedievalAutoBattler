@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
-    public class AdminNpcsFlexUpdateRequest
+    public class AdminsFlexEditNpcRequest
     {
         public int Id { get; set; }
         public string? Name { get; set; }
