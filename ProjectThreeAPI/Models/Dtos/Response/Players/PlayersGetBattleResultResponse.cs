@@ -2,7 +2,8 @@
 {
     public class PlayersGetBattleResultResponse
     {
-        public string? Winner { get; set; }
-        public List<int>? BattleIds { get; set; }
+        public List<List<PlayersPlayBattle_DuelingCard>> Duels { get; set; }
+        public int WinnerId { get; set; }
+        public required string WinnerName { get; set; }
     }
 }

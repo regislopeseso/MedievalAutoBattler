@@ -3,6 +3,7 @@ using MedievalAutoBattler.Models.Dtos.Response.Players;
 using MedievalAutoBattler.Models.Entities;
 using MedievalAutoBattler.Utilities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace MedievalAutoBattler.Service.Players
 {
@@ -66,7 +67,7 @@ namespace MedievalAutoBattler.Service.Players
 
         public async Task<(PlayersPlayBattleResponse?, string)> Play(PlayersPlayBattleRequest request)
         {
-            var (isValid, message) = RunIsValid(request);
+            var (isValid, message) = PlayIsValid(request);
             if (isValid == false)
             {
                 return (null, message);
@@ -151,7 +152,7 @@ namespace MedievalAutoBattler.Service.Players
                 battleDB.IsFinished = true;
 
                 content.Duels = duels;
-                content.Winner = $"The NPC {winner} wins";
+                content.WinnerName = $"The NPC {winner} wins";
                 content.WinnerId = battleDB.NpcId;
 
                 await _daoDbContext.SaveChangesAsync();
@@ -159,7 +160,7 @@ namespace MedievalAutoBattler.Service.Players
                 return (content, "Results read sucessfully");
             };
 
-            content.Winner = $"{winner} wins";
+            content.WinnerName = $"{winner} wins";
 
             if (battleDB.Save.PlayerLevel < battleDB.Npc.Level)
             {
@@ -211,11 +212,13 @@ namespace MedievalAutoBattler.Service.Players
                 }
 
             }
+
+            battleDB.Results = JsonSerializer.Serialize(content);
             await _daoDbContext.SaveChangesAsync();
 
             return (content, message);
         }
-        public (bool, string) RunIsValid(PlayersPlayBattleRequest request)
+        public (bool, string) PlayIsValid(PlayersPlayBattleRequest request)
         {
             if (request == null)
             {
@@ -235,7 +238,6 @@ namespace MedievalAutoBattler.Service.Players
             return (true, string.Empty);
         }
 
-
         public async Task<(PlayersGetBattleResultResponse?, string)> Get(PlayersGetBattleResultRequest request)
         {
             if (request.BattleId == null && request.SaveId == null || request.BattleId <= 0 && request.SaveId <= 0)
@@ -243,51 +245,22 @@ namespace MedievalAutoBattler.Service.Players
                 return (null, "Error: informing either a BattleId or a SaveId is mandatory");
             }
 
-
-            var content = new PlayersGetBattleResultResponse();
-
-            if (request.BattleId != null && request.BattleId > 0)
+            var battleDB = await _daoDbContext
+                                    .Battles
+                                    .FirstOrDefaultAsync(a => a.Id == request.BattleId && a.IsFinished == true);
+            if (battleDB == null || string.IsNullOrEmpty(battleDB.Results))
             {
-
-                var battleWinnerDB = await _daoDbContext
-                                     .Battles
-                                     .Where(a => a.Id == request.BattleId && a.IsFinished == true)
-                                     .Select(a => a.Winner)
-                                     .FirstOrDefaultAsync();
-
-                if (string.IsNullOrEmpty(battleWinnerDB) == true)
-                {
-                    content.Winner = null;
-                }
-                else
-                {
-                    content.Winner = battleWinnerDB;
-                }
+                return (null, "Error: no battle results found");
             }
+      
+            var revertJason = JsonSerializer.Deserialize<PlayersPlayBattleResponse>(battleDB.Results);
 
-            if (request.SaveId != null && request.SaveId > 0)
+            var content = new PlayersGetBattleResultResponse
             {
-
-                var battleIdsDB = await _daoDbContext
-                                     .Battles
-                                     .Where(a => a.SaveId == request.SaveId && a.IsFinished == true)
-                                     .Select(a => a.Id)
-                                     .ToListAsync();
-
-                if (battleIdsDB == null || battleIdsDB.Count == 0)
-                {
-                    content.BattleIds = null;
-                }
-                else
-                {
-                    content.BattleIds = battleIdsDB;
-                }
-            }
-
-            if (content.Winner == null && content.BattleIds == null)
-            {
-                return (null, "Error: no information found");
-            }
+                Duels = revertJason.Duels,
+                WinnerId = revertJason.WinnerId,
+                WinnerName = revertJason.WinnerName,
+            };
 
             return (content, "Results listed successfully");
         }

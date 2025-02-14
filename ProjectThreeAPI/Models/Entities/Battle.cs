@@ -21,6 +21,7 @@ namespace MedievalAutoBattler.Models.Entities
         public Npc Npc { get; set; }
 
         public string? Winner { get; set; }
+        public string? Results { get; set; }
         public bool IsFinished { get; set; } = false;
     }
 }
