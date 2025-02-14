@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Response.Players
 {
-    public class PlayersCreateNewSaveResponse
+    public class PlayersNewSaveResponse
     {
         public int SaveId { get; set; }
     }

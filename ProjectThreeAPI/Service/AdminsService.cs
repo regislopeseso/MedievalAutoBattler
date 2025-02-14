@@ -1,29 +1,257 @@
 ﻿using MedievalAutoBattler.Models.Entities;
+using MedievalAutoBattler.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 using MedievalAutoBattler.Utilities;
-using MedievalAutoBattler.Models.Enums;
-using System;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
-using System.Runtime.Intrinsics.Arm;
-using System.Net.Sockets;
-using System.Xml;
 using MedievalAutoBattler.Models.Dtos.Request.Admin;
 using MedievalAutoBattler.Models.Dtos.Response.Admin;
 
-namespace MedievalAutoBattler.Service.Admin
+namespace MedievalAutoBattler.Service
 {
-    public class AdminNpcsService
+    public class AdminsService
     {
         private readonly ApplicationDbContext _daoDbContext;
 
-        public AdminNpcsService(ApplicationDbContext daoDBcontext)
+        public AdminsService(ApplicationDbContext daoDbContext)
         {
-            _daoDbContext = daoDBcontext;
+            _daoDbContext = daoDbContext;
         }
 
-        public async Task<(AdminsCreateNpcResponse?, string)> Create(AdminsCreateNpcRequest request)
+        #region Admins Cards Management
+        public async Task<(AdminsCreateCardResponse?, string)> CreateCard(AdminsCreateCardRequest request)
+        {
+            var (isValid, message) = CreateIsValid(request);
+
+            if (isValid == false)
+            {
+                return (null, message);
+            }
+
+            var exists = await _daoDbContext
+                .Cards
+                .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
+
+            if (exists == true)
+            {
+                return (null, $"Error: this card already exists - {request.Name}");
+            }
+
+            var newCard = new Card
+            {
+                Name = request.Name,
+                Power = request.Power,
+                UpperHand = request.UpperHand,
+                Level = Helper.GetCardLevel(request.Power, request.UpperHand),
+                Type = request.Type,
+                IsDeleted = false,
+            };
+
+            _daoDbContext.Add(newCard);
+            await _daoDbContext.SaveChangesAsync();
+
+            return (null, "Card created successfully");
+        }
+        public (bool, string) CreateIsValid(AdminsCreateCardRequest request)
+        {
+            if (request == null)
+            {
+                return (false, "Error: no information provided");
+            }
+
+            if (string.IsNullOrEmpty(request.Name) == true)
+            {
+                return (false, "Error: the card's name is mandatory");
+            }
+
+            if (request.Power < Constants.MinCardPower || request.Power > Constants.MaxCardPower)
+            {
+                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
+            }
+
+            if (request.UpperHand < Constants.MinCardUpperHand || request.UpperHand > Constants.MaxCardUpperHand)
+            {
+                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
+            }
+
+            if (Enum.IsDefined(request.Type) == false)
+            {
+                var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
+                                       .Cast<CardType>()
+                                       .Select(cardType => $"{cardType} ({(int)cardType})"));
+
+                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
+            }
+
+            return (true, string.Empty);
+        }
+
+        public async Task<(AdminsSeedCardsResponse?, string)> SeedCards(AdminsSeedCardsRequest request)
+        {
+            var cardsSeed = new List<Card>();
+
+            ////Optionally adds a "miss" card, which has 0 power, 0 upper hand and no type
+            //var miss = new Card
+            //{
+            //    Name = "Miss",
+            //    Type = CardType.None,
+            //    IsDeleted = false
+
+            //};
+            //cardsSeed.Add(miss);
+
+            foreach (var cardType in new[] { CardType.Archer, CardType.Cavalry, CardType.Spearman })
+            {
+                for (int power = Constants.MinCardPower; power <= Constants.MaxCardPower; power++)
+                {
+                    for (int upperHand = Constants.MinCardUpperHand; upperHand <= Constants.MaxCardUpperHand; upperHand++)
+                    {
+                        var newCard = new Card
+                        {
+                            Name = cardType.ToString() + " *" + power + "|" + upperHand + "*",
+                            Power = power,
+                            UpperHand = upperHand,
+                            Level = Helper.GetCardLevel(power, upperHand),
+                            Type = cardType,
+                            IsDeleted = false
+                        };
+                        cardsSeed.Add(newCard);
+                    }
+                }
+            }
+
+            _daoDbContext.AddRange(cardsSeed);
+
+            await _daoDbContext.SaveChangesAsync();
+
+            return (null, "Cards seeded successfully");
+        }
+
+        public async Task<(List<AdminsGetCardsResponse>, string)> GetCards(AdminsGetCardsRequest request)
+        {
+            var contentQueriable = _daoDbContext
+                                       .Cards
+                                       .AsNoTracking()
+                                       .Where(a => a.IsDeleted == false);
+
+            var message = "All cards listed successfully";
+
+            if (request.StartCardId.HasValue && request.EndCardId.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Id >= request.StartCardId && a.Id <= request.EndCardId);
+
+                message = "Cards listed successfully";
+
+                if (request.StartCardId != request.EndCardId)
+                {
+                    message = "Card listed successfully";
+                }
+            }
+
+            var content = await contentQueriable
+                                    .Select(a => new AdminsGetCardsResponse
+                                    {
+                                        Id = a.Id,
+                                        Name = a.Name,
+                                        Power = a.Power,
+                                        UpperHand = a.UpperHand,
+                                        Level = a.Level,
+                                        Type = a.Type,
+                                    })
+                                    .OrderBy(a => a.Id)
+                                    .ThenBy(a => a.Name)
+                                    .ToListAsync();
+
+            return (content, "All cards listed successfully");
+        }
+
+        public async Task<(AdminsEditCardResponse?, string)> EditCards(AdminsEditCardRequest request)
+        {
+            var (isValid, message) = UpdateIsValid(request);
+
+            if (isValid == false)
+            {
+                return (null, message);
+            }
+
+            var cardDB = await _daoDbContext
+                                   .Cards
+                                   .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
+
+            if (cardDB == null)
+            {
+                return (null, $"Error: card not found: {request.Name}");
+            }
+
+            cardDB.Name = request.Name;
+            cardDB.Power = request.Power;
+            cardDB.UpperHand = request.UpperHand;
+            cardDB.Type = request.Type;
+
+            await _daoDbContext.SaveChangesAsync();
+
+            return (null, "Card updated successfully");
+        }
+
+        private (bool, string) UpdateIsValid(AdminsEditCardRequest card)
+        {
+            if (card == null)
+            {
+                return (false, "Error: no information provided");
+            }
+
+            if (string.IsNullOrEmpty(card.Name) == true)
+            {
+                return (false, "Error: the card's name is mandatory");
+            }
+
+            if (card.Power < Constants.MinCardPower || card.Power > Constants.MaxCardPower)
+            {
+                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
+            }
+
+            if (card.UpperHand < Constants.MinCardUpperHand || card.UpperHand > Constants.MaxCardUpperHand)
+            {
+                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
+            }
+
+            if (Enum.IsDefined(card.Type) == false)
+            {
+                var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
+                                       .Cast<CardType>()
+                                       .Select(cardType => $"{cardType} ({(int)cardType})"));
+
+                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
+            }
+
+            return (true, string.Empty);
+        }
+
+        public async Task<(AdminsDeleteCardResponse?, string)> DeleteCards(AdminsDeleteCardRequest request)
+        {
+            if (request.CardId <= 0)
+            {
+                return (null, $"Error: invalid CardID");
+            }
+
+            var exists = await _daoDbContext
+                .Cards
+                .AnyAsync(a => a.Id == request.CardId && a.IsDeleted == false);
+
+            if (exists == false)
+            {
+                return (null, $"Error: card not found");
+            }
+
+            await _daoDbContext
+                      .Cards
+                      .Where(a => a.Id == request.CardId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            return (null, "Card deleted successfully");
+        }
+        #endregion
+
+        #region Admin NPC management
+        public async Task<(AdminsCreateNpcResponse?, string)> CreateNpc(AdminsCreateNpcRequest request)
         {
             var (isValid, message) = CreateIsValid(request);
 
@@ -88,7 +316,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminsSeedNpcsResponse?, string)> Seed(AdminsSeedNpcsRequest request)
+        public async Task<(AdminsSeedNpcsResponse?, string)> SeedNpcs(AdminsSeedNpcsRequest request)
         {
             var cardsDB = await _daoDbContext
                                     .Cards
@@ -398,7 +626,7 @@ namespace MedievalAutoBattler.Service.Admin
             }
         }
 
-        public async Task<(List<AdminsGetNpcsResponse>, string)> Get(AdminsGetNpcsRequest request)
+        public async Task<(List<AdminsGetNpcsResponse>, string)> GetNpcs(AdminsGetNpcsRequest request)
         {
             var contentQueriable = _daoDbContext
                               .Npcs
@@ -532,7 +760,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminsEditNpcResponse?, string)> Edit(AdminsEditNpcRequest request)
+        public async Task<(AdminsEditNpcResponse?, string)> EditNpc(AdminsEditNpcRequest request)
         {
             var (isValid, message) = UpdateIsValid(request);
 
@@ -612,7 +840,7 @@ namespace MedievalAutoBattler.Service.Admin
             return (true, string.Empty);
         }
 
-        public async Task<(AdminsDeleteNpcResponse?, string)> Delete(AdminsDeleteNpcRequest request)
+        public async Task<(AdminsDeleteNpcResponse?, string)> DeleteNpc(AdminsDeleteNpcRequest request)
         {
             if (request.NpcId <= 0)
             {
@@ -677,5 +905,112 @@ namespace MedievalAutoBattler.Service.Admin
 
             return (newDeck, string.Empty);
         }
+        #endregion
+
+        #region Admin DB Data deletion
+        public async Task<(AdminsDeleteDbDataResponse?, string)> DeleteDbData(AdminsDeleteDbDataRequest response)
+        {
+            //await this._daoDbcontext
+            //          .Cards
+            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            //await this._daoDbcontext
+            //          .Npcs
+            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            //await this._daoDbcontext
+            //          .Saves
+            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            //await this._daoDbcontext
+            //          .Decks
+            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            //await this._daoDbcontext
+            //          .Battles
+            //          .Where(a => a.IsFinished == false)
+            //          .ExecuteDeleteAsync();
+
+            await using var transaction = await _daoDbContext.Database.BeginTransactionAsync();
+            var message = "DB data deletion successful";
+
+            //try
+            //{
+            //    await this._daoDbcontext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+            //    await this._daoDbcontext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+            //    await this._daoDbcontext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+            //    await this._daoDbcontext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            //    await transaction.CommitAsync(); // ✅ Commit changes if everything is successful
+            //    return (null, "DB data deletion successful");
+            //}
+            //catch (Exception ex)
+            //{
+            //    await transaction.RollbackAsync(); // ❌ Rollback in case of any failure
+            //    return (null, $"DB data deletion failed: {ex.Message}");
+            //}
+
+            try
+            {
+                try
+                {
+                    await _daoDbContext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to delete Cards: {ex.Message}", ex);
+                }
+
+                try
+                {
+                    await _daoDbContext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to delete NPCs: {ex.Message}", ex);
+                }
+
+                try
+                {
+                    await _daoDbContext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to delete Saves: {ex.Message}", ex);
+                }
+
+                try
+                {
+                    await _daoDbContext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to delete Decks: {ex.Message}", ex);
+                }
+
+                try
+                {
+                    await _daoDbContext
+                              .Battles
+                              .Where(a => a.IsFinished == false)
+                              .ExecuteDeleteAsync();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to hard delete Battles: {ex.Message}", ex);
+                }
+
+
+                await transaction.CommitAsync(); // ✅ Commit if everything is successful
+                return (null, message);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(); // ❌ Rollback in case of failure
+                return (null, $"DB data deletion failed: {ex.Message}");
+            }
+        }
+        #endregion
+
     }
 }

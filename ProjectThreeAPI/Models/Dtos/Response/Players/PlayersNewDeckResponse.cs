@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Response.Players
 {
-    public class PlayersCreateNewDeckResponse
+    public class PlayersNewDeckResponse
     {
     }
 }

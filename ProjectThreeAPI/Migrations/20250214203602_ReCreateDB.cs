@@ -114,6 +114,8 @@ namespace MedievalAutoBattler.Migrations
                     NpcId = table.Column<int>(type: "int", nullable: false),
                     Winner = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Results = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     IsFinished = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>

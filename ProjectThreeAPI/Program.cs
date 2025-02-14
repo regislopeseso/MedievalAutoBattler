@@ -1,5 +1,4 @@
-using MedievalAutoBattler.Service.Admin;
-using MedievalAutoBattler.Service.Players;
+using MedievalAutoBattler.Service;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -8,15 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<AdminCardsService>();
-builder.Services.AddScoped<AdminNpcsService>();
-builder.Services.AddScoped<AdminDeleteService>();
-builder.Services.AddScoped<PlayerSavesService>();
-builder.Services.AddScoped<PlayerStatsService>();
-builder.Services.AddScoped<PlayerCardsService>();
-builder.Services.AddScoped<PlayerDecksService>();
-builder.Services.AddScoped<PlayerBattlesService>();
-builder.Services.AddScoped<PlayerBoostersService>();
+builder.Services.AddScoped<AdminsService>();
+builder.Services.AddScoped<PlayersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

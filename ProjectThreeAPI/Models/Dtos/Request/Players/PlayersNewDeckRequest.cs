@@ -1,6 +1,6 @@
 ﻿namespace MedievalAutoBattler.Models.Dtos.Request.Players
 {
-    public class PlayersCreateNewDeckRequest
+    public class PlayersNewDeckRequest
     {
         public int SaveId { get; set; }
         public required string Name { get; set; }
