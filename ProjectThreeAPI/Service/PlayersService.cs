@@ -19,7 +19,7 @@ namespace MedievalAutoBattler.Service
         #region Players Saves
         public async Task<(PlayersNewSaveResponse?, string)> NewPlayer(PlayersNewSaveRequest request)
         {
-            var (isValid, message) = CreateIsValid(request);
+            var (isValid, message) = NewPlayerIsValid(request);
 
             if (isValid == false)
             {
@@ -70,14 +70,14 @@ namespace MedievalAutoBattler.Service
             return (content, "A new save has been created successfully");
         }
 
-        private (bool, string) CreateIsValid(PlayersNewSaveRequest request)
+        private (bool, string) NewPlayerIsValid(PlayersNewSaveRequest request)
         {
             if (request == null)
             {
                 return (false, "Error: no information was provided");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.Name) == true)
             {
                 return (false, "Error: a name must be provided");
             }
@@ -180,7 +180,7 @@ namespace MedievalAutoBattler.Service
         #region Players Deck
         public async Task<(PlayersNewDeckResponse?, string)> NewDeck(PlayersNewDeckRequest request)
         {
-            var (isValid, message) = CreateIsValid(request);
+            var (isValid, message) = NewDeckIsValid(request);
 
             if (isValid == false)
             {
@@ -254,14 +254,14 @@ namespace MedievalAutoBattler.Service
             return (null, "A new deck has been created successfully");
         }
 
-        private (bool, string) CreateIsValid(PlayersNewDeckRequest request)
+        private (bool, string) NewDeckIsValid(PlayersNewDeckRequest request)
         {
             if (request == null)
             {
                 return (false, "Error: no information was provided for creating a new Deck");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.Name) == true)
             {
                 return (false, "Error: the deck's name is mandatory");
             }
@@ -281,7 +281,7 @@ namespace MedievalAutoBattler.Service
 
         public async Task<(PlayersEditDeckResponse?, string)> EditDeck(PlayersEditDeckRequest request)
         {
-            var (isValid, message) = UpdateIsValid(request);
+            var (isValid, message) = EditDeckIsValid(request);
 
             if (isValid == false)
             {
@@ -361,14 +361,14 @@ namespace MedievalAutoBattler.Service
             return (null, "Deck updated successfully");
         }
 
-        private (bool, string) UpdateIsValid(PlayersEditDeckRequest request)
+        private (bool, string) EditDeckIsValid(PlayersEditDeckRequest request)
         {
             if (request == null)
             {
                 return (false, "Error: no information was provided for updating a deck");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.Name) == true)
             {
                 return (false, "Error: the deck's name is mandatory");
             }

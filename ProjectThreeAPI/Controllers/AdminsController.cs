@@ -60,7 +60,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditCard(AdminsEditCardRequest request)//Corrigir a verificação do nome nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres
+        public async Task<IActionResult> EditCard(AdminsEditCardRequest request)
         {
             var (content, message) = await this._adminsService.EditCards(request);
 
@@ -88,7 +88,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNpc(AdminsCreateNpcRequest request)//Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres
+        public async Task<IActionResult> CreateNpc(AdminsCreateNpcRequest request)
         {
             var (content, message) = await this._adminsService.CreateNpc(request);
 
@@ -130,7 +130,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditNpc(AdminsEditNpcRequest request) //Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres e ajustar a filtragem de id's errados para listá-los tal como no edit da carta
+        public async Task<IActionResult> EditNpc(AdminsEditNpcRequest request) //Ajustar a filtragem de id's errados para listá-los tal como no edit da carta
         {
             var (content, message) = await this._adminsService.EditNpc(request);
 

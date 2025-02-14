@@ -19,7 +19,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NewSave(PlayersNewSaveRequest request) //Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres
+        public async Task<IActionResult> NewSave(PlayersNewSaveRequest request)
         {
             var (content, message) = await this._playersService.NewPlayer(request);
 
@@ -47,7 +47,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NewDeck(PlayersNewDeckRequest request)//Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres e ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que SaveCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
+        public async Task<IActionResult> NewDeck(PlayersNewDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que SaveCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
         {
             var (content, message) = await this._playersService.NewDeck(request);
 
@@ -61,7 +61,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditDeck(PlayersEditDeckRequest request)//Corrigir a verificação do nome e descrição nesse endpoint ele não aceita "" mas aceita "  ", impor no mínimo 3 caracteres e ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que SaveCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
+        public async Task<IActionResult> EditDeck(PlayersEditDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que SaveCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
         {
             var (content, message) = await this._playersService.EditDeck(request);
 

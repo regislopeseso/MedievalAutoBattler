@@ -298,7 +298,7 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: no information was provided");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.Name) == true)
             {
                 return (false, "Error: the NPC's name is mandatory");
             }
@@ -822,7 +822,7 @@ namespace MedievalAutoBattler.Service
                 return (false, "Error: no information was provided for creating a new NPC");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.Name) == true)
             {
                 return (false, "Error: the NPC's name is mandatory");
             }
@@ -909,108 +909,32 @@ namespace MedievalAutoBattler.Service
 
         #region Admin DB Data deletion
         public async Task<(AdminsDeleteDbDataResponse?, string)> DeleteDbData(AdminsDeleteDbDataRequest response)
-        {
-            //await this._daoDbcontext
-            //          .Cards
-            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-            //await this._daoDbcontext
-            //          .Npcs
-            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-            //await this._daoDbcontext
-            //          .Saves
-            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-            //await this._daoDbcontext
-            //          .Decks
-            //          .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-            //await this._daoDbcontext
-            //          .Battles
-            //          .Where(a => a.IsFinished == false)
-            //          .ExecuteDeleteAsync();
-
+        {     
             await using var transaction = await _daoDbContext.Database.BeginTransactionAsync();
+
             var message = "DB data deletion successful";
-
-            //try
-            //{
-            //    await this._daoDbcontext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-            //    await this._daoDbcontext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-            //    await this._daoDbcontext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-            //    await this._daoDbcontext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-            //    await transaction.CommitAsync(); // ✅ Commit changes if everything is successful
-            //    return (null, "DB data deletion successful");
-            //}
-            //catch (Exception ex)
-            //{
-            //    await transaction.RollbackAsync(); // ❌ Rollback in case of any failure
-            //    return (null, $"DB data deletion failed: {ex.Message}");
-            //}
 
             try
             {
-                try
-                {
-                    await _daoDbContext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to delete Cards: {ex.Message}", ex);
-                }
+                await this._daoDbContext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-                try
-                {
-                    await _daoDbContext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to delete NPCs: {ex.Message}", ex);
-                }
+                await this._daoDbContext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-                try
-                {
-                    await _daoDbContext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to delete Saves: {ex.Message}", ex);
-                }
+                await this._daoDbContext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-                try
-                {
-                    await _daoDbContext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to delete Decks: {ex.Message}", ex);
-                }
+                await this._daoDbContext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-                try
-                {
-                    await _daoDbContext
-                              .Battles
-                              .Where(a => a.IsFinished == false)
-                              .ExecuteDeleteAsync();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Failed to hard delete Battles: {ex.Message}", ex);
-                }
+                await transaction.CommitAsync(); // ✅ Commit changes if everything is successful
 
-
-                await transaction.CommitAsync(); // ✅ Commit if everything is successful
-                return (null, message);
+                return (null, "DB data deletion successful");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(); // ❌ Rollback in case of failure
+                await transaction.RollbackAsync(); // ❌ Rollback in case of any failure
+
                 return (null, $"DB data deletion failed: {ex.Message}");
-            }
+            }         
         }
         #endregion
-
     }
 }
