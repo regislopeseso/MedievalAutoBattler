@@ -1,6 +1,6 @@
-﻿namespace MedievalAutoBattler.Models.Dtos.Response.Battles
+﻿namespace MedievalAutoBattler.Models.Dtos.Response.Players
 {
-    public class BattlesNewBattleCreateResponse
+    public class PlayersCreateBattleResponse
     {
         public int BattleId { get; set; }
         public required string NpcName { get; set; }

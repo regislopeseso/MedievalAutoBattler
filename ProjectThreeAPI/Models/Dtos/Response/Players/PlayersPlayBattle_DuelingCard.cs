@@ -1,8 +1,8 @@
 ﻿using MedievalAutoBattler.Models.Enums;
 
-namespace MedievalAutoBattler.Models.Dtos.Response.Battles
+namespace MedievalAutoBattler.Models.Dtos.Response.Players
 {
-    public class BattlesPlayBattleExecuteResponse_DuelingCard
+    public class PlayersPlayBattle_DuelingCard
     {
         public string CardName { get; set; }
         public CardType CardType { get; set; }

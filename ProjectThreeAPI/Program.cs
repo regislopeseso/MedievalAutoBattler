@@ -1,5 +1,4 @@
 using MedievalAutoBattler.Service.Admin;
-using MedievalAutoBattler.Service.Battles;
 using MedievalAutoBattler.Service.Players;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,9 +14,7 @@ builder.Services.AddScoped<PlayerSavesService>();
 builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<PlayerCardsService>();
 builder.Services.AddScoped<PlayerDecksService>();
-builder.Services.AddScoped<BattlesNewBattlesService>();
-builder.Services.AddScoped<BattlesPlaysService>();
-builder.Services.AddScoped<BattlesResultsService>();
+builder.Services.AddScoped<PlayerBattlesService>();
 builder.Services.AddScoped<PlayerBoostersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

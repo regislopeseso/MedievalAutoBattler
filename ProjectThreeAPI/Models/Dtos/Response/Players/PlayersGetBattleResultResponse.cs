@@ -1,6 +1,6 @@
-﻿namespace MedievalAutoBattler.Models.Dtos.Response.Battles
+﻿namespace MedievalAutoBattler.Models.Dtos.Response.Players
 {
-    public class BattlesGetResultsResponse
+    public class PlayersGetBattleResultResponse
     {
         public string? Winner { get; set; }
         public List<int>? BattleIds { get; set; }

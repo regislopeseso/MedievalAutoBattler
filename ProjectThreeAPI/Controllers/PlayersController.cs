@@ -17,13 +17,17 @@ namespace MedievalAutoBattler.Controllers
         private readonly PlayerStatsService _playerStatsService;
         private readonly PlayerBoostersService _playerBoostersService;
 
-        public PlayersController(PlayerSavesService playerSavesService, PlayerCardsService playerCardsService, PlayerDecksService playerDecksService, PlayerStatsService playerStatsService, PlayerBoostersService playerBoostersService)
+        private readonly PlayerBattlesService _playerBattlesService;
+     
+
+        public PlayersController(PlayerSavesService playerSavesService, PlayerCardsService playerCardsService, PlayerDecksService playerDecksService, PlayerStatsService playerStatsService, PlayerBoostersService playerBoostersService, PlayerBattlesService playerBattlesService)
         {
             this._playerSavesService = playerSavesService;
             this._playerCardsService = playerCardsService;
             this._playerDecksService = playerDecksService;
             this._playerStatsService = playerStatsService;
             this._playerBoostersService = playerBoostersService;
+            this._playerBattlesService = playerBattlesService;;
         }
 
         [HttpPost]
@@ -116,6 +120,48 @@ namespace MedievalAutoBattler.Controllers
             var (content, message) = await this._playerBoostersService.Open(request);
 
             var response = new Response<List<PlayersOpenBoosterResponse>>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateBattle(PlayersCreateBattleRequest request)
+        {
+            var (content, message) = await this._playerBattlesService.Create(request);
+
+            var response = new Response<PlayersCreateBattleResponse>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PlayBattle(PlayersPlayBattleRequest request)
+        {
+            var (content, message) = await this._playerBattlesService.Play(request);
+
+            var response = new Response<PlayersPlayBattleResponse>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBattleResults(PlayersGetBattleResultRequest request)
+        {
+            var (content, message) = await this._playerBattlesService.Get(request);
+
+            var response = new Response<PlayersGetBattleResultResponse>()
             {
                 Content = content,
                 Message = message
