@@ -13,11 +13,14 @@ namespace MedievalAutoBattler.Controllers
     {
         private readonly AdminCardsService _adminCardsService;
         private readonly AdminNpcsService _adminNpcsService;
+        private readonly AdminDeleteService _adminDeleteService;
 
-        public AdminsController(AdminCardsService adminCardsService, AdminNpcsService adminNpcsService)
+
+        public AdminsController(AdminCardsService adminCardsService, AdminNpcsService adminNpcsService, AdminDeleteService adminDeleteService)
         {
             this._adminCardsService = adminCardsService;
             this._adminNpcsService = adminNpcsService;
+            this._adminDeleteService = adminDeleteService;
         }
 
 
@@ -153,6 +156,20 @@ namespace MedievalAutoBattler.Controllers
             var (content, message) = await this._adminNpcsService.Delete(request);
 
             var response = new Response<AdminsDeleteNpcResponse>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteDbData(AdminsDeleteDbDataRequest request)
+        {
+            var (content, message) = await this._adminDeleteService.Delete(request);
+
+            var response = new Response<AdminsDeleteDbDataResponse>()
             {
                 Content = content,
                 Message = message

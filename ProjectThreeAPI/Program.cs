@@ -10,6 +10,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<AdminCardsService>();
 builder.Services.AddScoped<AdminNpcsService>();
+builder.Services.AddScoped<AdminDeleteService>();
 builder.Services.AddScoped<PlayerSavesService>();
 builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<PlayerCardsService>();

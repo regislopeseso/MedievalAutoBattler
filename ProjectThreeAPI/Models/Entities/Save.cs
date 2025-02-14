@@ -23,9 +23,9 @@ namespace MedievalAutoBattler.Models.Entities
         [InverseProperty("Save")]
         public List<Deck> Decks { get; set; }
 
-        public bool IsDeleted { get; set; } = false;
-
         public bool AllCardsCollectedTrophy { get; set; } = false;
         public bool AllNpcsDefeatedTrophy { get; set; } = false;
+       
+        public bool IsDeleted { get; set; } = false;
     }
 }
