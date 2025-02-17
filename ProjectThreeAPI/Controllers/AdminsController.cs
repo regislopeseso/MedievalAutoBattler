@@ -157,6 +157,25 @@ namespace MedievalAutoBattler.Controllers
             return new JsonResult(response);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SeedAll(AdminsSeedAllRequest seedAllRequest)
+        {          
+            var (SeedCardsContent, SeedCardsCardsMessage) = await this._adminsService.SeedCards(seedAllRequest.AdminSeedCardsRequest);   
+            var (SeedNpcsContent, SeedNpcsMessage) = await this._adminsService.SeedNpcs(seedAllRequest.AdminSeedNpcsRequest);
+
+            var response = new Response<AdminsSeedAllResponse>()
+            {
+                Content = new AdminsSeedAllResponse()
+                {
+                    AdminsSeedCardsResponse = SeedCardsContent,
+                    AdminsSeedNpcsResponse = SeedNpcsContent
+                },
+                Message = SeedCardsCardsMessage + SeedNpcsMessage
+            };      
+
+            return new JsonResult(response);
+        }
+
         [HttpDelete]
         public async Task<IActionResult> DeleteDbData([FromServices] AdminsDeleteDbDataService adminsDeleteDbDateService, AdminsDeleteDbDataRequest request)
         {

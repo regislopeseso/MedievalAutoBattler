@@ -54,7 +54,7 @@ namespace MedievalAutoBattler.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "saves",
+                name: "PlayersSaves",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -73,7 +73,7 @@ namespace MedievalAutoBattler.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_saves", x => x.Id);
+                    table.PrimaryKey("PK_PlayersSaves", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -123,15 +123,15 @@ namespace MedievalAutoBattler.Migrations
                 {
                     table.PrimaryKey("PK_battles", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_battles_npcs_NpcId",
-                        column: x => x.NpcId,
-                        principalTable: "npcs",
+                        name: "FK_battles_PlayersSaves_SaveId",
+                        column: x => x.SaveId,
+                        principalTable: "PlayersSaves",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_battles_saves_SaveId",
-                        column: x => x.SaveId,
-                        principalTable: "saves",
+                        name: "FK_battles_npcs_NpcId",
+                        column: x => x.NpcId,
+                        principalTable: "npcs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -152,16 +152,16 @@ namespace MedievalAutoBattler.Migrations
                 {
                     table.PrimaryKey("PK_Decks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Decks_saves_SaveId",
+                        name: "FK_Decks_PlayersSaves_SaveId",
                         column: x => x.SaveId,
-                        principalTable: "saves",
+                        principalTable: "PlayersSaves",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SaveCardEntries",
+                name: "PlayerCardEntries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -172,24 +172,24 @@ namespace MedievalAutoBattler.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SaveCardEntries", x => x.Id);
+                    table.PrimaryKey("PK_PlayerCardEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SaveCardEntries_cards_CardId",
-                        column: x => x.CardId,
-                        principalTable: "cards",
+                        name: "FK_PlayerCardEntries_PlayersSaves_SaveId",
+                        column: x => x.SaveId,
+                        principalTable: "PlayersSaves",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SaveCardEntries_saves_SaveId",
-                        column: x => x.SaveId,
-                        principalTable: "saves",
+                        name: "FK_PlayerCardEntries_cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "cards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SaveDeckEntries",
+                name: "PlayerDeckEntries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -200,17 +200,17 @@ namespace MedievalAutoBattler.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SaveDeckEntries", x => x.Id);
+                    table.PrimaryKey("PK_PlayerDeckEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SaveDeckEntries_Decks_DeckId",
+                        name: "FK_PlayerDeckEntries_Decks_DeckId",
                         column: x => x.DeckId,
                         principalTable: "Decks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SaveDeckEntries_SaveCardEntries_SaveCardEntryId",
+                        name: "FK_PlayerDeckEntries_PlayerCardEntries_SaveCardEntryId",
                         column: x => x.SaveCardEntryId,
-                        principalTable: "SaveCardEntries",
+                        principalTable: "PlayerCardEntries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -242,23 +242,23 @@ namespace MedievalAutoBattler.Migrations
                 column: "NpcId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaveCardEntries_CardId",
-                table: "SaveCardEntries",
+                name: "IX_PlayerCardEntries_CardId",
+                table: "PlayerCardEntries",
                 column: "CardId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaveCardEntries_SaveId",
-                table: "SaveCardEntries",
+                name: "IX_PlayerCardEntries_SaveId",
+                table: "PlayerCardEntries",
                 column: "SaveId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaveDeckEntries_DeckId",
-                table: "SaveDeckEntries",
+                name: "IX_PlayerDeckEntries_DeckId",
+                table: "PlayerDeckEntries",
                 column: "DeckId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaveDeckEntries_SaveCardEntryId",
-                table: "SaveDeckEntries",
+                name: "IX_PlayerDeckEntries_SaveCardEntryId",
+                table: "PlayerDeckEntries",
                 column: "SaveCardEntryId");
         }
 
@@ -272,7 +272,7 @@ namespace MedievalAutoBattler.Migrations
                 name: "NpcDeckEntries");
 
             migrationBuilder.DropTable(
-                name: "SaveDeckEntries");
+                name: "PlayerDeckEntries");
 
             migrationBuilder.DropTable(
                 name: "npcs");
@@ -281,13 +281,13 @@ namespace MedievalAutoBattler.Migrations
                 name: "Decks");
 
             migrationBuilder.DropTable(
-                name: "SaveCardEntries");
+                name: "PlayerCardEntries");
+
+            migrationBuilder.DropTable(
+                name: "PlayersSaves");
 
             migrationBuilder.DropTable(
                 name: "cards");
-
-            migrationBuilder.DropTable(
-                name: "saves");
         }
     }
 }
