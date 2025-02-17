@@ -16,5 +16,6 @@ namespace MedievalAutoBattler.Models.Entities
         [ForeignKey("Card")]
         public int CardId { get; set; }
         public Card Card { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

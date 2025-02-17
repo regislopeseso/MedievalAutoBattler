@@ -187,46 +187,69 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var saveDB = await _daoDbContext
+            var saveDB = await this._daoDbContext
                                    .Saves
                                    .Include(b => b.SaveCardEntries)
                                    .Include(a => a.Decks)
-                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId);
+                                   .FirstOrDefaultAsync(a => a.Id == request.SaveId && a.IsDeleted == false);
 
             if (saveDB == null)
             {
                 return (null, "Error: invalid SaveId");
             }
 
-            #region Checking if requested CardIds are available in players collection
+            // (1/4) Checking if requested CardIds are available in players collection
+            // (2/4) Group all player's cards by key == name and value == quantity
             var playerSaveCardEntriesDB = saveDB.SaveCardEntries
+                                                .Where(a => a.IsDeleted == false)
                                                 .GroupBy(a => a.CardId)
                                                 .ToDictionary(cardId => cardId.Key, qty => qty.Count());
 
-            // Group the requested cards to count their occurrences
+            // (3/4) Group the requested cards by key == name and value == quantity
             var requestedCardCounts = request.CardIds
                                              .GroupBy(cardId => cardId)
                                              .ToDictionary(cardId => cardId.Key, qty => qty.Count());
 
-            // Check if the player has enough of each requested card
+            // (4/4) Compare the two groupings to check if the player has enough of each requested card
+            var invalidCardIds = new List<int>();
+            var lackingCardIds = new Dictionary<int, int>();
+
             foreach (var (cardId, requestedCount) in requestedCardCounts)
             {
                 var cardExists = playerSaveCardEntriesDB.TryGetValue(cardId, out int ownedCount);
 
                 if (cardExists == false)
                 {
-                    return (null, $"Error:  invalid cardIds {cardId}");
+                    invalidCardIds.Add(cardId);
                 }
 
-                if (requestedCount > ownedCount)
+                else if (requestedCount > ownedCount)
                 {
-                    return (null, $"Error: Not enough copies of CardId {cardId}. Requested: {requestedCount}, Owned: {ownedCount}");
+                    invalidCardIds.Add(cardId);
+                    lackingCardIds[cardId] = requestedCount - ownedCount;
                 }
+
             }
-            #endregion
+            if (invalidCardIds.Any() || lackingCardIds.Any() == true)
+            {
+
+                message = $"Error:  invalid cardIds: {string.Join(", ", invalidCardIds)}";
+
+                if (lackingCardIds.Any() == true)
+                {
+                    message += ". Not enough copies available: ";
+
+                    foreach (var (cardId, missingQty) in lackingCardIds)                 
+                    {
+                        var pluralized = missingQty == 1 ? "copy" : "copies";
+                        message += $"cardId {cardId} lacks {missingQty} {pluralized}, ";
+                    }
+                }
+
+                return (null, message);
+            }
 
             var playerCardIdsDB = saveDB.SaveCardEntries.Select(a => a.CardId).ToList();
-
 
             var filteredSaveCardEntries = saveDB.SaveCardEntries
                                                 .Where(entry => request.CardIds.Contains(entry.CardId))
@@ -288,7 +311,7 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var saveDB = await _daoDbContext
+            var saveDB = await this._daoDbContext
                                    .Saves
                                    .Include(a => a.Decks)
                                    .ThenInclude(a => a.SaveDeckEntries)

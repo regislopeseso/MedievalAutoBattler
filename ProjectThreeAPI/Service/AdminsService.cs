@@ -232,18 +232,24 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: invalid CardID");
             }
 
-            var exists = await _daoDbContext
-                .Cards
-                .AnyAsync(a => a.Id == request.CardId && a.IsDeleted == false);
+            var exists = await this._daoDbContext
+                                   .Cards
+                                   .AnyAsync(a => a.Id == request.CardId && a.IsDeleted == false);
 
             if (exists == false)
             {
                 return (null, $"Error: card not found");
             }
 
-            await _daoDbContext
+            await this._daoDbContext
                       .Cards
                       .Where(a => a.Id == request.CardId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
+            // Deletes also all saveCardEntries having the same Id of the card which is being deleted
+            await this._daoDbContext
+                      .SaveCardEntries
+                      .Where(a => a.CardId == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
             return (null, "Card deleted successfully");
