@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MedievalAutoBattler.Models.Entities
 {
     [Table("NpcDeckEntries")]
-    public class NpcDeckEntry
+    public class NpcsDeckEntry
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]        
@@ -16,6 +16,8 @@ namespace MedievalAutoBattler.Models.Entities
         [ForeignKey("Npc")]
         public int NpcId { get; set; }
         [InverseProperty("Deck")]
-        public Npc Npc { get; set; }   
+        public Npc Npc { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }

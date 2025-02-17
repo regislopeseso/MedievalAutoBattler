@@ -2,8 +2,8 @@
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("SaveCardEntries")]
-    public class SaveCardEntry
+    [Table("PlayerCardEntries")]
+    public class PlayersCardEntry
     {
         public int Id { get; set; }
 
@@ -11,11 +11,11 @@ namespace MedievalAutoBattler.Models.Entities
         [ForeignKey("Save")]
         public int SaveId { get; set; }
         [InverseProperty("SaveCardEntries")]
-        public Save Save {  get; set; }
+        public PlayersSave Save {  get; set; }
 
         [ForeignKey("Card")]
         public int CardId { get; set; }
         public Card Card { get; set; }
-        public bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

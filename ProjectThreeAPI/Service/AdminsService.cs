@@ -246,9 +246,15 @@ namespace MedievalAutoBattler.Service
                       .Where(a => a.Id == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
+            // Deletes also all NpcsDeckEntries having the same Id of the card which is being deleted
+            await this._daoDbContext
+                      .NpcsDeckEntries
+                      .Where(a => a.CardId == request.CardId)
+                      .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
+
             // Deletes also all saveCardEntries having the same Id of the card which is being deleted
             await this._daoDbContext
-                      .SaveCardEntries
+                      .PlayersCardEntries
                       .Where(a => a.CardId == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
@@ -377,7 +383,7 @@ namespace MedievalAutoBattler.Service
                     var cardsFiltered = cardsDB.Where(a => a.Level == level).ToList();
 
                     // Creating a new list of NpcDeckentries
-                    var validNpcDeckEntries = new List<NpcDeckEntry>();
+                    var validNpcDeckEntries = new List<NpcsDeckEntry>();
                     for (int countCards = 0; countCards < 5; countCards++)
                     {
                         // Obtaining one random card out of the list of filtered cards
@@ -386,7 +392,7 @@ namespace MedievalAutoBattler.Service
                         // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
-                            new NpcDeckEntry
+                            new NpcsDeckEntry
                             {
                                 Card = card
                             }
@@ -439,7 +445,7 @@ namespace MedievalAutoBattler.Service
                         var levelSequence = Helper.GetPowerSequence(level, i);
 
                         // Criating a new list of valid NPC deck entries:
-                        var validNpcDeckEntries = new List<NpcDeckEntry>();
+                        var validNpcDeckEntries = new List<NpcsDeckEntry>();
 
                         // Obtaing a random card of cardLvl corresponding to its position in the sequence:
                         foreach (var cardLvl in levelSequence)
@@ -453,7 +459,7 @@ namespace MedievalAutoBattler.Service
                             // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                             validNpcDeckEntries.Add
                             (
-                                new NpcDeckEntry
+                                new NpcsDeckEntry
                                 {
                                     Card = card
                                 }
@@ -499,7 +505,7 @@ namespace MedievalAutoBattler.Service
                             var levelSequence = Helper.GetPowerSequence(level, i);
 
                             // Criating a new list of valid NPC deck entries:
-                            var validNpcDeckEntries = new List<NpcDeckEntry>();
+                            var validNpcDeckEntries = new List<NpcsDeckEntry>();
 
                             // Obtaing a random cards of cardLvl corresponding to its position in the sequence:
                             foreach (var cardLvl in levelSequence)
@@ -513,7 +519,7 @@ namespace MedievalAutoBattler.Service
                                 // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                                 validNpcDeckEntries.Add
                                 (
-                                    new NpcDeckEntry
+                                    new NpcsDeckEntry
                                     {
                                         Card = card
                                     }
@@ -551,7 +557,7 @@ namespace MedievalAutoBattler.Service
                 var countBotsLvlSix = 0;
                 var countBotsLvlSeven = 0;
 
-                var validDecks = new List<List<NpcDeckEntry>>();
+                var validDecks = new List<List<NpcsDeckEntry>>();
                 var npcs = new List<Npc>();
 
                 // Obtaining the lists of all unique sequences
@@ -559,7 +565,7 @@ namespace MedievalAutoBattler.Service
                 for (int i = 1; i <= 12; i++)
                 {
                     // Criating a new list of valid NPC deck entries:
-                    var validNpcDeckEntries = new List<NpcDeckEntry>();
+                    var validNpcDeckEntries = new List<NpcsDeckEntry>();
 
                     //ex.: cardLvl == 6 and  i == 1 => (4, 4, 6, 8, 8 )
                     var levelSequence = Helper.GetPowerSequence(level, i);
@@ -576,7 +582,7 @@ namespace MedievalAutoBattler.Service
                         // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
-                            new NpcDeckEntry
+                            new NpcsDeckEntry
                             {
                                 Card = card
                             }
@@ -726,7 +732,7 @@ namespace MedievalAutoBattler.Service
                 }
 
                 var availableCardIds = _daoDbContext
-                                           .NpcDeckEntries
+                                           .NpcsDeckEntries
                                            .Select(a => a.CardId)
                                            .ToList();
 
@@ -740,7 +746,7 @@ namespace MedievalAutoBattler.Service
                     if (request.DeckChanges.ContainsKey(oldId))
                     {
                         _daoDbContext
-                            .NpcDeckEntries
+                            .NpcsDeckEntries
                             .Where(a => a.Npc.Id == request.Id && a.Card.Id == oldId)
                             .ExecuteUpdate(a => a.SetProperty(b => b.CardId, request.DeckChanges[oldId]));
                     }
@@ -801,7 +807,7 @@ namespace MedievalAutoBattler.Service
                                   .Select(a => a.Id)
                                   .ToList();
 
-            await _daoDbContext.NpcDeckEntries
+            await _daoDbContext.NpcsDeckEntries
                       .Where(a => oldCardIds.Contains(a.CardId) && a.NpcId == request.Id)
                       .ExecuteDeleteAsync();
 
@@ -870,7 +876,7 @@ namespace MedievalAutoBattler.Service
 
             return (null, "NPC deleted successfully");
         }
-        private async Task<(List<NpcDeckEntry>?, string)> GenerateRandomDeck(List<int> cardIds)
+        private async Task<(List<NpcsDeckEntry>?, string)> GenerateRandomDeck(List<int> cardIds)
         {
             var cardsDB = await _daoDbContext
                                     .Cards
@@ -895,14 +901,14 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
             }
 
-            var newDeck = new List<NpcDeckEntry>();
+            var newDeck = new List<NpcsDeckEntry>();
 
             foreach (var id in cardIds)
             {
                 var newCard = cardsDB.FirstOrDefault(a => a.Id == id);
                 if (newCard != null)
                 {
-                    newDeck.Add(new NpcDeckEntry()
+                    newDeck.Add(new NpcsDeckEntry()
                     {
                         Card = newCard,
                     });
@@ -913,34 +919,6 @@ namespace MedievalAutoBattler.Service
         }
         #endregion
 
-        #region Admin DB Data deletion
-        public async Task<(AdminsDeleteDbDataResponse?, string)> DeleteDbData(AdminsDeleteDbDataRequest response)
-        {     
-            await using var transaction = await _daoDbContext.Database.BeginTransactionAsync();
-
-            var message = "DB data deletion successful";
-
-            try
-            {
-                await this._daoDbContext.Cards.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-                await this._daoDbContext.Npcs.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-                await this._daoDbContext.Saves.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-                await this._daoDbContext.Decks.ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
-
-                await transaction.CommitAsync(); // ✅ Commit changes if everything is successful
-
-                return (null, "DB data deletion successful");
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(); // ❌ Rollback in case of any failure
-
-                return (null, $"DB data deletion failed: {ex.Message}");
-            }         
-        }
-        #endregion
+       
     }
 }

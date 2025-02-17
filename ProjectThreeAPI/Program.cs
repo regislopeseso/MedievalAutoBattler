@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<AdminsService>();
+builder.Services.AddScoped<AdminsDeleteDbDataService>();
 builder.Services.AddScoped<PlayersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

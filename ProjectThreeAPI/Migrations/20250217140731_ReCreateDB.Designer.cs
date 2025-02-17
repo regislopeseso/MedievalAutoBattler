@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MedievalAutoBattler.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250217124715_AddColumnIsDeletedToSaveCardEntriesTable")]
-    partial class AddColumnIsDeletedToSaveCardEntriesTable
+    [Migration("20250217140731_ReCreateDB")]
+    partial class ReCreateDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -150,6 +150,9 @@ namespace MedievalAutoBattler.Migrations
                     b.Property<int>("CardId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("NpcId")
                         .HasColumnType("int");
 
@@ -242,6 +245,9 @@ namespace MedievalAutoBattler.Migrations
 
                     b.Property<int>("DeckId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("SaveCardEntryId")
                         .HasColumnType("int");

@@ -158,9 +158,9 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteDbData(AdminsDeleteDbDataRequest request)
+        public async Task<IActionResult> DeleteDbData([FromServices] AdminsDeleteDbDataService adminsDeleteDbDateService, AdminsDeleteDbDataRequest request)
         {
-            var (content, message) = await this._adminsService.DeleteDbData(request);
+            var (content, message) = await adminsDeleteDbDateService.DeleteDbData(request);
 
             var response = new Response<AdminsDeleteDbDataResponse>()
             {

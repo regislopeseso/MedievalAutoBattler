@@ -147,6 +147,9 @@ namespace MedievalAutoBattler.Migrations
                     b.Property<int>("CardId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("NpcId")
                         .HasColumnType("int");
 
@@ -239,6 +242,9 @@ namespace MedievalAutoBattler.Migrations
 
                     b.Property<int>("DeckId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("SaveCardEntryId")
                         .HasColumnType("int");
