@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("PlayersSaves")]
-    public class PlayersSave
+    [Table("playersSaves")]
+    public class PlayerSave
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,7 +18,7 @@ namespace MedievalAutoBattler.Models.Entities
         public int CountBoosters { get; set; }
 
         [InverseProperty("Save")]
-        public List<PlayersCardEntry> SaveCardEntries { get; set; }
+        public List<PlayerCardEntry> PlayerCardEntries { get; set; }
 
         [InverseProperty("Save")]
         public List<Deck> Decks { get; set; }

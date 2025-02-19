@@ -2,16 +2,16 @@
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("PlayerCardEntries")]
-    public class PlayersCardEntry
+    [Table("playerCardEntries")]
+    public class PlayerCardEntry
     {
         public int Id { get; set; }
 
 
         [ForeignKey("Save")]
         public int SaveId { get; set; }
-        [InverseProperty("SaveCardEntries")]
-        public PlayersSave Save {  get; set; }
+        [InverseProperty("PlayerCardEntries")]
+        public PlayerSave Save {  get; set; }
 
         [ForeignKey("Card")]
         public int CardId { get; set; }

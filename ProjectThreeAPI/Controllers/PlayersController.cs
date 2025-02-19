@@ -47,7 +47,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NewDeck(PlayersNewDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que PlayersCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
+        public async Task<IActionResult> NewDeck(PlayersNewDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que PlayerCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
         {
             var (content, message) = await this._playersService.NewDeck(request);
 
@@ -61,7 +61,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> EditDeck(PlayersEditDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que PlayersCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
+        public async Task<IActionResult> EditDeck(PlayersEditDeckRequest request)//Ajustar a filtragem de id's errados para listá-los tal como no edit da carta. Corrigir a filtragem para que PlayerCardEntries com iSDeleted == true não possam ser acrescidas ao novo Deck
         {
             var (content, message) = await this._playersService.EditDeck(request);
 
@@ -131,7 +131,7 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PlayBattle(PlayersPlayBattleRequest request) //Considerar se caso uma carta for apagar então os PlayersCardEntries também serem apagados, se então qualquer deck contendo elas deve ser setado com isDeleted e caso o saveCardEntry for removido então também o Deck que passará a ter 4 cartas ser setado como isDeleted. Tratar o erro que é obtido caso tentar rodar uma batalha com um deck de tamanho inferior a 5
+        public async Task<IActionResult> PlayBattle(PlayersPlayBattleRequest request) //Considerar se caso uma carta for apagar então os PlayerCardEntries também serem apagados, se então qualquer deck contendo elas deve ser setado com isDeleted e caso o saveCardEntry for removido então também o Deck que passará a ter 4 cartas ser setado como isDeleted. Tratar o erro que é obtido caso tentar rodar uma batalha com um deck de tamanho inferior a 5
         {
             var (content, message) = await this._playersService.PlayBattle(request);
 

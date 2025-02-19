@@ -45,8 +45,8 @@ namespace MedievalAutoBattler.Service
                 IsDeleted = false,
             };
 
-            _daoDbContext.Add(newCard);
-            await _daoDbContext.SaveChangesAsync();
+            this._daoDbContext.Add(newCard);
+            await this._daoDbContext.SaveChangesAsync();
 
             return (null, "Card created successfully");
         }
@@ -87,16 +87,6 @@ namespace MedievalAutoBattler.Service
         public async Task<(AdminsSeedCardsResponse?, string)> SeedCards(AdminsSeedCardsRequest request)
         {
             var cardsSeed = new List<Card>();
-
-            ////Optionally adds a "miss" card, which has 0 power, 0 upper hand and no type
-            //var miss = new Card
-            //{
-            //    Name = "Miss",
-            //    Type = CardType.None,
-            //    IsDeleted = false
-
-            //};
-            //cardsSeed.Add(miss);
 
             foreach (var cardType in new[] { CardType.Archer, CardType.Cavalry, CardType.Spearman })
             {
@@ -383,7 +373,7 @@ namespace MedievalAutoBattler.Service
                     var cardsFiltered = cardsDB.Where(a => a.Level == level).ToList();
 
                     // Creating a new list of NpcDeckentries
-                    var validNpcDeckEntries = new List<NpcsDeckEntry>();
+                    var validNpcDeckEntries = new List<NpcDeckEntry>();
                     for (int countCards = 0; countCards < 5; countCards++)
                     {
                         // Obtaining one random card out of the list of filtered cards
@@ -392,7 +382,7 @@ namespace MedievalAutoBattler.Service
                         // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
-                            new NpcsDeckEntry
+                            new NpcDeckEntry
                             {
                                 Card = card
                             }
@@ -445,7 +435,7 @@ namespace MedievalAutoBattler.Service
                         var levelSequence = Helper.GetPowerSequence(level, i);
 
                         // Criating a new list of valid NPC deck entries:
-                        var validNpcDeckEntries = new List<NpcsDeckEntry>();
+                        var validNpcDeckEntries = new List<NpcDeckEntry>();
 
                         // Obtaing a random card of cardLvl corresponding to its position in the sequence:
                         foreach (var cardLvl in levelSequence)
@@ -459,7 +449,7 @@ namespace MedievalAutoBattler.Service
                             // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                             validNpcDeckEntries.Add
                             (
-                                new NpcsDeckEntry
+                                new NpcDeckEntry
                                 {
                                     Card = card
                                 }
@@ -505,7 +495,7 @@ namespace MedievalAutoBattler.Service
                             var levelSequence = Helper.GetPowerSequence(level, i);
 
                             // Criating a new list of valid NPC deck entries:
-                            var validNpcDeckEntries = new List<NpcsDeckEntry>();
+                            var validNpcDeckEntries = new List<NpcDeckEntry>();
 
                             // Obtaing a random cards of cardLvl corresponding to its position in the sequence:
                             foreach (var cardLvl in levelSequence)
@@ -519,7 +509,7 @@ namespace MedievalAutoBattler.Service
                                 // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                                 validNpcDeckEntries.Add
                                 (
-                                    new NpcsDeckEntry
+                                    new NpcDeckEntry
                                     {
                                         Card = card
                                     }
@@ -557,7 +547,7 @@ namespace MedievalAutoBattler.Service
                 var countBotsLvlSix = 0;
                 var countBotsLvlSeven = 0;
 
-                var validDecks = new List<List<NpcsDeckEntry>>();
+                var validDecks = new List<List<NpcDeckEntry>>();
                 var npcs = new List<Npc>();
 
                 // Obtaining the lists of all unique sequences
@@ -565,7 +555,7 @@ namespace MedievalAutoBattler.Service
                 for (int i = 1; i <= 12; i++)
                 {
                     // Criating a new list of valid NPC deck entries:
-                    var validNpcDeckEntries = new List<NpcsDeckEntry>();
+                    var validNpcDeckEntries = new List<NpcDeckEntry>();
 
                     //ex.: cardLvl == 6 and  i == 1 => (4, 4, 6, 8, 8 )
                     var levelSequence = Helper.GetPowerSequence(level, i);
@@ -582,7 +572,7 @@ namespace MedievalAutoBattler.Service
                         // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
-                            new NpcsDeckEntry
+                            new NpcDeckEntry
                             {
                                 Card = card
                             }
@@ -876,7 +866,7 @@ namespace MedievalAutoBattler.Service
 
             return (null, "NPC deleted successfully");
         }
-        private async Task<(List<NpcsDeckEntry>?, string)> GenerateRandomDeck(List<int> cardIds)
+        private async Task<(List<NpcDeckEntry>?, string)> GenerateRandomDeck(List<int> cardIds)
         {
             var cardsDB = await _daoDbContext
                                     .Cards
@@ -901,14 +891,14 @@ namespace MedievalAutoBattler.Service
                 return (null, $"Error: invalid cardId: {string.Join(" ,", notFoundIds)}");
             }
 
-            var newDeck = new List<NpcsDeckEntry>();
+            var newDeck = new List<NpcDeckEntry>();
 
             foreach (var id in cardIds)
             {
                 var newCard = cardsDB.FirstOrDefault(a => a.Id == id);
                 if (newCard != null)
                 {
-                    newDeck.Add(new NpcsDeckEntry()
+                    newDeck.Add(new NpcDeckEntry()
                     {
                         Card = newCard,
                     });
@@ -917,8 +907,6 @@ namespace MedievalAutoBattler.Service
 
             return (newDeck, string.Empty);
         }
-        #endregion
-
-       
+        #endregion       
     }
 }

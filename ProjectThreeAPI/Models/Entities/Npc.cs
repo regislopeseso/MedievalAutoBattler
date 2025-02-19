@@ -11,7 +11,7 @@ namespace MedievalAutoBattler.Models.Entities
         public int Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
-        public List<NpcsDeckEntry> Deck { get; set; }
+        public List<NpcDeckEntry> Deck { get; set; }
         public int Level {  get; set; }
         public bool IsDeleted { get; set; } = false;
     }

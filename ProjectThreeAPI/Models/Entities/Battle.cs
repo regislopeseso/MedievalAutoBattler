@@ -14,7 +14,7 @@ namespace MedievalAutoBattler.Models.Entities
 
         [ForeignKey("Save")]
         public int SaveId { get; set; }     
-        public PlayersSave Save {get; set;}       
+        public PlayerSave Save {get; set;}       
 
         [ForeignKey("Npc")]
         public int NpcId {  get; set; }

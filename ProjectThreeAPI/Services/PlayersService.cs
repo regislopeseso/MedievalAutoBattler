@@ -26,33 +26,33 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var newSave = new PlayersSave
+            var newSave = new PlayerSave
             {
                 Name = request.Name,
             };
 
-            var initialSaveCardEntries = new List<PlayersCardEntry>();
+            var initialSaveCardEntries = new List<PlayerCardEntry>();
             (initialSaveCardEntries, message) = await GetInitialSaveCardEntries(newSave.Id);
             if (initialSaveCardEntries == null || initialSaveCardEntries.Count == 0)
             {
                 return (null, message);
             }
 
-            var initialSaveDeckEntries = new List<PlayersDeckEntry>();
+            var initialSaveDeckEntries = new List<PlayerDeckEntry>();
             (initialSaveDeckEntries, message) = GetInitialSaveDeckEntries(initialSaveCardEntries);
             if (initialSaveDeckEntries == null || initialSaveDeckEntries.Count == 0)
             {
                 return (null, message);
             }
 
-            newSave.SaveCardEntries = initialSaveCardEntries;
+            newSave.PlayerCardEntries = initialSaveCardEntries;
 
             newSave.Decks = new List<Deck>()
             {
                 new Deck
                 {
                     Name = "Initial Deck",
-                    SaveDeckEntries = initialSaveDeckEntries
+                    PlayerDeckEntries = initialSaveDeckEntries
                 }
             };
 
@@ -84,7 +84,7 @@ namespace MedievalAutoBattler.Service
 
             return (true, string.Empty);
         }
-        private async Task<(List<PlayersCardEntry>?, string)> GetInitialSaveCardEntries(int saveId)
+        private async Task<(List<PlayerCardEntry>?, string)> GetInitialSaveCardEntries(int saveId)
         {
             var validInitialCardsDB = await _daoDbContext
                                     .Cards
@@ -105,7 +105,7 @@ namespace MedievalAutoBattler.Service
                 randomCardIds.Add(validInitialCardsDB[random.Next(validInitialCardsDB.Count)]);
             }
 
-            var initialSaveCardEntries = new List<PlayersCardEntry>();
+            var initialSaveCardEntries = new List<PlayerCardEntry>();
 
             foreach (var cardId in randomCardIds)
             {
@@ -114,7 +114,7 @@ namespace MedievalAutoBattler.Service
                     return (null, "Error: invalid cardId for initial SaveCardEntries");
                 }
 
-                initialSaveCardEntries.Add(new PlayersCardEntry()
+                initialSaveCardEntries.Add(new PlayerCardEntry()
                 {
                     SaveId = saveId,
                     CardId = cardId,
@@ -123,15 +123,15 @@ namespace MedievalAutoBattler.Service
 
             return (initialSaveCardEntries, string.Empty);
         }
-        private (List<PlayersDeckEntry>?, string) GetInitialSaveDeckEntries(List<PlayersCardEntry> initialSaveCardEntries)
+        private (List<PlayerDeckEntry>?, string) GetInitialSaveDeckEntries(List<PlayerCardEntry> initialSaveCardEntries)
         {
-            var initialSaveDeckEntries = new List<PlayersDeckEntry>();
+            var initialSaveDeckEntries = new List<PlayerDeckEntry>();
 
             foreach (var initialSaveDeckEntry in initialSaveCardEntries)
             {
-                initialSaveDeckEntries.Add(new PlayersDeckEntry()
+                initialSaveDeckEntries.Add(new PlayerDeckEntry()
                 {
-                    SaveCardEntry = initialSaveDeckEntry
+                    PlayerCardEntry = initialSaveDeckEntry
                 });
             }
 
@@ -189,7 +189,7 @@ namespace MedievalAutoBattler.Service
 
             var saveDB = await this._daoDbContext
                                    .PlayersSaves
-                                   .Include(b => b.SaveCardEntries)
+                                   .Include(b => b.PlayerCardEntries)
                                    .Include(a => a.Decks)
                                    .FirstOrDefaultAsync(a => a.Id == request.SaveId && a.IsDeleted == false);
 
@@ -200,7 +200,7 @@ namespace MedievalAutoBattler.Service
 
             // (1/4) Checking if requested CardIds are available in players collection
             // (2/4) Group all player's cards by key == name and value == quantity
-            var playerSaveCardEntriesDB = saveDB.SaveCardEntries
+            var playerSaveCardEntriesDB = saveDB.PlayerCardEntries
                                                 .Where(a => a.IsDeleted == false)
                                                 .GroupBy(a => a.CardId)
                                                 .ToDictionary(cardId => cardId.Key, qty => qty.Count());
@@ -249,9 +249,9 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var playerCardIdsDB = saveDB.SaveCardEntries.Select(a => a.CardId).ToList();
+            var playerCardIdsDB = saveDB.PlayerCardEntries.Select(a => a.CardId).ToList();
 
-            var filteredSaveCardEntries = saveDB.SaveCardEntries
+            var filteredSaveCardEntries = saveDB.PlayerCardEntries
                                                 .Where(entry => request.CardIds.Contains(entry.CardId))
                                                 .ToList();
             var newDeck = new Deck()
@@ -259,16 +259,16 @@ namespace MedievalAutoBattler.Service
                 Name = request.Name
             };
 
-            var newSaveDeckEntries = new List<PlayersDeckEntry>();
+            var newSaveDeckEntries = new List<PlayerDeckEntry>();
             foreach (var saveCardEntry in filteredSaveCardEntries)
             {
                 newSaveDeckEntries.Add(
-                    new PlayersDeckEntry
+                    new PlayerDeckEntry
                     {
-                        SaveCardEntry = saveCardEntry,
+                        PlayerCardEntry = saveCardEntry,
                     });
             }
-            newDeck.SaveDeckEntries = newSaveDeckEntries;
+            newDeck.PlayerDeckEntries = newSaveDeckEntries;
 
             saveDB.Decks.Add(newDeck);
 
@@ -314,8 +314,8 @@ namespace MedievalAutoBattler.Service
             var saveDB = await this._daoDbContext
                                    .PlayersSaves                                   
                                    .Include(a => a.Decks)
-                                   .ThenInclude(a => a.SaveDeckEntries)
-                                   .Include(a => a.SaveCardEntries)
+                                   .ThenInclude(a => a.PlayerDeckEntries)
+                                   .Include(a => a.PlayerCardEntries)
                                    .FirstOrDefaultAsync(a => a.Decks.Any(deck => deck.Id == request.DeckId));
 
             if (saveDB == null)
@@ -330,12 +330,12 @@ namespace MedievalAutoBattler.Service
                 return (null, "Error: this deck was deleted");
             }
 
-            var oldSaveCardEntriesIds = deckDB.SaveDeckEntries
-                                              .Select(a => a.SaveCardEntry.Id)
+            var oldSaveCardEntriesIds = deckDB.PlayerDeckEntries
+                                              .Select(a => a.PlayerCardEntry.Id)
                                               .ToList();
 
             #region Checking if requested CardIds are available in players collection
-            var playerSaveCardEntriesDB = saveDB.SaveCardEntries
+            var playerSaveCardEntriesDB = saveDB.PlayerCardEntries
                                                 .GroupBy(a => a.CardId)
                                                 .ToDictionary(cardId => cardId.Key, qty => qty.Count());
 
@@ -361,17 +361,17 @@ namespace MedievalAutoBattler.Service
             }
             #endregion       
 
-            var filteredSaveCardEntries = saveDB.SaveCardEntries
+            var filteredSaveCardEntries = saveDB.PlayerCardEntries
                                                .Where(entry => request.CardIds.Contains(entry.CardId))
                                                .ToList();
 
             deckDB.Name = request.Name;
 
-            var updatedSaveDeckEntries = new List<PlayersDeckEntry>();
+            var updatedSaveDeckEntries = new List<PlayerDeckEntry>();
 
             for (int i = 0; i < Constants.DeckSize; i++)
             {
-                deckDB.SaveDeckEntries[i].SaveCardEntry = filteredSaveCardEntries[i];
+                deckDB.PlayerDeckEntries[i].PlayerCardEntry = filteredSaveCardEntries[i];
             }
 
             await _daoDbContext.SaveChangesAsync();
@@ -489,8 +489,8 @@ namespace MedievalAutoBattler.Service
                 .ThenInclude(a => a.Card)
                 .Include(a => a.Save)
                 .ThenInclude(a => a.Decks.Where(a => a.Id == request.DeckId))
-                .ThenInclude(a => a.SaveDeckEntries)
-                .ThenInclude(a => a.SaveCardEntry)
+                .ThenInclude(a => a.PlayerDeckEntries)
+                .ThenInclude(a => a.PlayerCardEntry)
                 .ThenInclude(a => a.Card)
                 .Where(a => a.Id == request.BattleId)
                 .FirstOrDefaultAsync();
@@ -519,12 +519,12 @@ namespace MedievalAutoBattler.Service
 
             var playerDeckDB = battleDB.Save.Decks.FirstOrDefault(a => a.Id == request.DeckId);
 
-            if (playerDeckDB == null || playerDeckDB.SaveDeckEntries.Count == 0 || playerDeckDB.IsDeleted == true)
+            if (playerDeckDB == null || playerDeckDB.PlayerDeckEntries.Count == 0 || playerDeckDB.IsDeleted == true)
             {
                 return (null, "Error: invalid deck");
             }
 
-            var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.SaveDeckEntries.Select(b => b.SaveCardEntry.Card)).ToList();
+            var playerCardsDB = battleDB.Save.Decks.SelectMany(a => a.PlayerDeckEntries.Select(b => b.PlayerCardEntry.Card)).ToList();
             var npcCardsDB = battleDB.Npc.Deck.Select(a => a.Card).ToList();
 
             var duels = new List<List<PlayersPlayBattle_DuelingCard>>();
@@ -703,7 +703,7 @@ namespace MedievalAutoBattler.Service
 
             var saveDB = await _daoDbContext
                                    .PlayersSaves
-                                   .Include(a => a.SaveCardEntries)
+                                   .Include(a => a.PlayerCardEntries)
                                    .FirstOrDefaultAsync(a => a.IsDeleted == false && a.Id == request.SaveId);
 
             if (saveDB == null)
@@ -716,7 +716,7 @@ namespace MedievalAutoBattler.Service
             }
 
             // Criar um HashSet para armazenar os IDs já salvos e melhorar a performance
-            var playerSaveCardEntries = saveDB.SaveCardEntries
+            var playerSaveCardEntries = saveDB.PlayerCardEntries
                                         .GroupBy(a => a.CardId)
                                         .ToDictionary(cardId => cardId.Key, cardCount => cardCount.Count());
 
@@ -753,7 +753,7 @@ namespace MedievalAutoBattler.Service
 
                 if (currentCount < 5)
                 {
-                    saveDB.SaveCardEntries.Add(new PlayersCardEntry
+                    saveDB.PlayerCardEntries.Add(new PlayerCardEntry
                     {
                         SaveId = saveDB.Id,
                         CardId = card.Id,
@@ -768,7 +768,7 @@ namespace MedievalAutoBattler.Service
 
             var message = "Booster oppened successfully";
 
-            var playerCardsId = saveDB.SaveCardEntries.Select(a => a.CardId).ToList();
+            var playerCardsId = saveDB.PlayerCardEntries.Select(a => a.CardId).ToList();
 
             if (saveDB.AllCardsCollectedTrophy == false && cardsDB.Select(a => a.Id).All(cardId => playerCardsId.Contains(cardId)) == true)
             {

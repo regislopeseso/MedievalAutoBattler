@@ -4,18 +4,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("PlayerDeckEntries")]
-    public class PlayersDeckEntry
+    [Table("playerDeckEntries")]
+    public class PlayerDeckEntry
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         
-        [ForeignKey("SaveCardEntry")]
-        public int SaveCardEntryId { get; set; }
-        public PlayersCardEntry SaveCardEntry { get; set; }
+        [ForeignKey("PlayerCardEntry")]
+        public int PlayerCardEntryId { get; set; }
+        public PlayerCardEntry PlayerCardEntry { get; set; }
 
-        [InverseProperty(("SaveDeckEntries"))]
+        [InverseProperty(("PlayerDeckEntries"))]
         public Deck Deck { get; set; }
         public bool IsDeleted { get; set; } = false;
     }

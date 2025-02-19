@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("NpcDeckEntries")]
-    public class NpcsDeckEntry
+    [Table("npcDeckEntries")]
+    public class NpcDeckEntry
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]        

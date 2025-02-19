@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MedievalAutoBattler.Models.Entities
 {
-    [Table("Decks")]
+    [Table("decks")]
     public class Deck
     {
         [Key]
@@ -12,10 +12,10 @@ namespace MedievalAutoBattler.Models.Entities
         public required string Name { get; set; }
 
         [InverseProperty("Deck")]
-        public List<PlayersDeckEntry> SaveDeckEntries { get; set; }
+        public List<PlayerDeckEntry> PlayerDeckEntries { get; set; }
             
         [InverseProperty("Decks")]
-        public PlayersSave Save { get; set; }
+        public PlayerSave Save { get; set; }
 
         public bool IsDeleted { get; set; } = false;
     }
