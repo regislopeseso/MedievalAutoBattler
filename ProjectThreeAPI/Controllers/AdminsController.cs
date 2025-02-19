@@ -46,11 +46,25 @@ namespace MedievalAutoBattler.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCards(AdminsGetCardsRequest request)//Corrigir a filtragem desse Enpoint
+        public async Task<IActionResult> FilterCards(AdminsFilterCardsRequest request)
         {
-            var (content, message) = await this._adminsService.GetCards(request);
+            var (content, message) = await this._adminsService.FilterCards(request);
 
-            var response = new Response<List<AdminsGetCardsResponse>>()
+            var response = new Response<List<AdminsFilterCardsResponse>>()
+            {
+                Content = content,
+                Message = message
+            };
+
+            return new JsonResult(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllCards(AdminsGetAllCardsRequest request)
+        {
+            var (content, message) = await this._adminsService.GetAllCards(request);
+
+            var response = new Response<List<AdminsGetAllCardsResponse>>()
             {
                 Content = content,
                 Message = message
@@ -114,7 +128,7 @@ namespace MedievalAutoBattler.Controllers
 
             return new JsonResult(response);
         }
-
+        
         [HttpGet]
         public async Task<IActionResult> GetNpcs(AdminsGetNpcsRequest request) //Corrigir a filtragem desse Enpoint
         {

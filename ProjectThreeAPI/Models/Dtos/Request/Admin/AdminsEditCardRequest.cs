@@ -4,10 +4,10 @@ namespace MedievalAutoBattler.Models.Dtos.Request.Admin
 {
     public class AdminsEditCardRequest
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int Power { get; set; }
-        public int UpperHand { get; set; }
-        public CardType Type { get; set; }
+        public int CardId { get; set; }
+        public string CardName { get; set; }
+        public int CardPower { get; set; }
+        public int CardUpperHand { get; set; }
+        public CardType CardType { get; set; }
     }
 }

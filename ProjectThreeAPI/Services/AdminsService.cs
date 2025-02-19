@@ -26,59 +26,60 @@ namespace MedievalAutoBattler.Service
                 return (null, message);
             }
 
-            var exists = await _daoDbContext
-                .Cards
-                .AnyAsync(a => a.Name == request.Name && a.IsDeleted == false);
+            var exists = await this._daoDbContext
+                                   .Cards
+                                   .AnyAsync(a => a.Name == request.CardName && a.IsDeleted == false);
 
             if (exists == true)
             {
-                return (null, $"Error: this card already exists - {request.Name}");
+                return (null, $"Error: this card already exists: {request.CardName}");
             }
 
             var newCard = new Card
             {
-                Name = request.Name,
-                Power = request.Power,
-                UpperHand = request.UpperHand,
-                Level = Helper.GetCardLevel(request.Power, request.UpperHand),
-                Type = request.Type,
+                Name = request.CardName,
+                Power = request.CardPower,
+                UpperHand = request.CardUpperHand,
+                Level = Helper.GetCardLevel(request.CardPower, request.CardUpperHand),
+                Type = request.CardType,
                 IsDeleted = false,
             };
 
             this._daoDbContext.Add(newCard);
             await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Card created successfully");
+            return (null, "New card created successfully");
         }
-        public (bool, string) CreateIsValid(AdminsCreateCardRequest request)
+
+        private static (bool, string) CreateIsValid(AdminsCreateCardRequest request)
         {
             if (request == null)
             {
                 return (false, "Error: no information provided");
             }
 
-            if (string.IsNullOrEmpty(request.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.CardName) == true)
             {
-                return (false, "Error: the card's name is mandatory");
+                return (false, "Error: invalid CardName");
             }
 
-            if (request.Power < Constants.MinCardPower || request.Power > Constants.MaxCardPower)
+            if (request.CardPower < Constants.MinCardPower || request.CardPower > Constants.MaxCardPower)
             {
-                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
+                return (false, $"Error: invalid CardPowe. It must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
             }
 
-            if (request.UpperHand < Constants.MinCardUpperHand || request.UpperHand > Constants.MaxCardUpperHand)
+            if (request.CardUpperHand < Constants.MinCardUpperHand || request.CardUpperHand > Constants.MaxCardUpperHand)
             {
-                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
+                return (false, $"Error: invalid CardUpperHand. It must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
             }
 
-            if (Enum.IsDefined(request.Type) == false)
+            if (Enum.IsDefined(request.CardType) == false)
             {
                 var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
                                        .Cast<CardType>()
                                        .Select(cardType => $"{cardType} ({(int)cardType})"));
 
-                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
+                return (false, $"Error: invalid CardType. It must be one of the following: {validTypes}");
             }
 
             return (true, string.Empty);
@@ -108,108 +109,266 @@ namespace MedievalAutoBattler.Service
                 }
             }
 
-            _daoDbContext.AddRange(cardsSeed);
+            this._daoDbContext.AddRange(cardsSeed);
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
-            return (null, "Cards seeded successfully");
+            return (null, $"{cardsSeed.Count} new cards haven been successfully seeded");
         }
 
-        public async Task<(List<AdminsGetCardsResponse>, string)> GetCards(AdminsGetCardsRequest request)
+        public async Task<(List<AdminsFilterCardsResponse>?, string)> FilterCards(AdminsFilterCardsRequest request)
         {
-            var contentQueriable = _daoDbContext
+            var (filterIsValid, message) = FilterIsValid(request);
+
+            if (filterIsValid == false)
+            {
+                return (null, message);
+            }
+
+            var contentQueriable = this._daoDbContext
                                        .Cards
                                        .AsNoTracking()
                                        .Where(a => a.IsDeleted == false);
+            
+            message = "All cards listed successfully";
+            
+            #region Filtering by CardName           
+            if (String.IsNullOrWhiteSpace(request.CardName) == false)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Name.ToLower().Contains(request.CardName.ToLower()));
 
-            var message = "All cards listed successfully";
+                message = $"The card ->{request.CardName}<- has been successfully filtered";
+            }
+            #endregion
 
+            #region Filtering by CardId           
             if (request.StartCardId.HasValue && request.EndCardId.HasValue == true)
             {
                 contentQueriable = contentQueriable.Where(a => a.Id >= request.StartCardId && a.Id <= request.EndCardId);
 
-                message = "Cards listed successfully";
+                message = $"The cards ranging from id = {request.StartCardId} to id = {request.EndCardId} have been successfully filtered";
 
-                if (request.StartCardId != request.EndCardId)
+                if (request.StartCardId == request.EndCardId)
                 {
-                    message = "Card listed successfully";
+                    message = $"The card of id = {request.StartCardId} has been successfully filtered";
                 }
             }
+            #endregion
+
+            #region Filtering by CardPower
+            if (request.CardPower.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Power == request.CardPower);
+
+                message = $"The cards having power = {request.CardPower} have been successfully filtered";               
+            }
+            #endregion
+
+            #region Filtering by CardUpperHand           
+            if (request.CardUpperHand.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.UpperHand == request.CardUpperHand);
+
+                message = $"The cards having upper hand = {request.CardUpperHand} have been successfully filtered";
+            }
+            #endregion
+
+            #region Filtering By CardLevel
+            if (request.CardLevel.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Level == request.CardLevel);
+
+                message = $"The cards of level = {request.CardLevel} have been successfully filtered";
+            }
+            #endregion
+
+            #region Filtering by CardType          
+            if (request.CardType.HasValue == true)
+            {
+                contentQueriable = contentQueriable.Where(a => a.Type == request.CardType);
+
+                message = $"The cards of type = {request.CardType} have been successfully filtered";
+            }
+            #endregion
 
             var content = await contentQueriable
-                                    .Select(a => new AdminsGetCardsResponse
+                                    .Select(a => new AdminsFilterCardsResponse
                                     {
-                                        Id = a.Id,
-                                        Name = a.Name,
-                                        Power = a.Power,
-                                        UpperHand = a.UpperHand,
-                                        Level = a.Level,
-                                        Type = a.Type,
+                                        CardId = a.Id,
+                                        CardName = a.Name,
+                                        CardPower = a.Power,
+                                        CardUpperHand = a.UpperHand,
+                                        CardLevel = a.Level,
+                                        CardType = a.Type,
                                     })
-                                    .OrderBy(a => a.Id)
-                                    .ThenBy(a => a.Name)
+                                    .OrderBy(a => a.CardId)
+                                    .ThenBy(a => a.CardName)
                                     .ToListAsync();
+
+            if (content == null || content.Count == 0)
+            {
+                return (null, "Error: nothing found");
+            }
+
+            return (content, message);
+        }
+
+        public (bool, string) FilterIsValid(AdminsFilterCardsRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.CardName) == true &&
+               request.StartCardId == null && request.EndCardId == null &&
+               request.CardPower == null &&
+               request.CardUpperHand == null &&
+               request.CardLevel == null &&
+               request.CardType == null)
+            {
+                return (false, "Error: no filter added querying the cards");
+            }
+
+            if (String.IsNullOrWhiteSpace(request.CardName) == false && request.CardName.Trim().Length < 3)
+            {
+                return (false, "Error: invalid CardName. Filtering by name requires at least 3 characters");
+            }
+
+            if (request.StartCardId > request.EndCardId)
+            {
+                return (false, "Error: invalid CardIds. StartCardId cannot be greater than EndCardId");
+            }
+
+            if (request.StartCardId.HasValue == true && request.EndCardId.HasValue == false)
+            {
+                request.EndCardId = request.StartCardId + 99;
+            }
+
+            if (request.StartCardId.HasValue == false && request.EndCardId.HasValue == true)
+            {
+                request.StartCardId = request.EndCardId - 99;
+            }
+
+            if (request.EndCardId - request.StartCardId > 100)
+            {
+                return (false, "Error: invalid range. Only 100 cards can be loaded per query");
+            }
+
+            if (request.CardPower < Constants.MinCardPower || request.CardPower > Constants.MaxCardPower)
+            {
+                return (false, $"Error: invalid CardPower. It must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
+            }
+
+            if (request.CardUpperHand < Constants.MinCardUpperHand || request.CardUpperHand > Constants.MaxCardUpperHand)
+            {
+                return (false, $"Error: invalid CardUpperHand. It must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
+            }
+
+            if (request.CardLevel < Constants.MinCardLevel || request.CardLevel > Constants.MaxCardLevel)
+            {
+                return (false, $"Error: invalid CardLevel. It must be between {Constants.MinCardLevel} and {Constants.MaxCardLevel}");
+            }
+
+            if (request.CardType.HasValue == true && Enum.IsDefined(request.CardType.Value) == false)
+            {
+                var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
+                                       .Cast<CardType>()
+                                       .Select(cardType => $"{cardType} ({(int)cardType})"));
+
+                return (false, $"Error: invalid CardType. It must be one of the following: {validTypes}");
+            }
+
+            return (true, String.Empty);
+        }
+
+        public async Task<(List<AdminsGetAllCardsResponse>?, string)> GetAllCards(AdminsGetAllCardsRequest request)
+        {                 
+            var content = await this._daoDbContext
+                                    .Cards
+                                    .AsNoTracking()
+                                    .Where(a => a.IsDeleted == false)
+                                    .Select(a => new AdminsGetAllCardsResponse
+                                    {
+                                        CardId = a.Id,
+                                        CardName = a.Name,
+                                        CardPower = a.Power,
+                                        CardUpperHand = a.UpperHand,
+                                        CardLevel = a.Level,
+                                        CardType = a.Type,
+                                    })
+                                    .OrderBy(a => a.CardId)
+                                    .ToListAsync();
+
+            if (content == null || content.Count == 0)
+            {
+                return (null, "Error: no cards were found");
+            }
 
             return (content, "All cards listed successfully");
         }
 
         public async Task<(AdminsEditCardResponse?, string)> EditCards(AdminsEditCardRequest request)
         {
-            var (isValid, message) = UpdateIsValid(request);
+            var (isValid, message) = EditIsValid(request);
 
             if (isValid == false)
             {
                 return (null, message);
             }
 
-            var cardDB = await _daoDbContext
+            var exist = await this._daoDbContext
                                    .Cards
-                                   .FirstOrDefaultAsync(a => a.Id == request.Id && a.IsDeleted == false);
+                                   .AnyAsync(a => a.Name.ToLower() == request.CardName.Trim().ToLower());
+
+            if(exist == true)
+            {
+                return (null, $"Error: invalid CardName: ->{request.CardName}<- .A card with this name already exists");
+            }
+
+            var cardDB = await this._daoDbContext
+                                   .Cards
+                                   .FirstOrDefaultAsync(a => a.Id == request.CardId && a.IsDeleted == false);
 
             if (cardDB == null)
             {
-                return (null, $"Error: card not found: {request.Name}");
+                return (null, $"Error: card not found");
             }
 
-            cardDB.Name = request.Name;
-            cardDB.Power = request.Power;
-            cardDB.UpperHand = request.UpperHand;
-            cardDB.Type = request.Type;
+            cardDB.Name = request.CardName;
+            cardDB.Power = request.CardPower;
+            cardDB.UpperHand = request.CardUpperHand;
+            cardDB.Type = request.CardType;
 
-            await _daoDbContext.SaveChangesAsync();
+            await this._daoDbContext.SaveChangesAsync();
 
             return (null, "Card updated successfully");
         }
 
-        private (bool, string) UpdateIsValid(AdminsEditCardRequest card)
+        private static (bool, string) EditIsValid(AdminsEditCardRequest request)
         {
-            if (card == null)
+            if (request == null)
             {
                 return (false, "Error: no information provided");
             }
 
-            if (string.IsNullOrEmpty(card.Name) == true)
+            if (string.IsNullOrWhiteSpace(request.CardName) == true)
             {
-                return (false, "Error: the card's name is mandatory");
+                return (false, "Error: invalid CardName");
             }
 
-            if (card.Power < Constants.MinCardPower || card.Power > Constants.MaxCardPower)
+            if (request.CardPower < Constants.MinCardPower || request.CardPower > Constants.MaxCardPower)
             {
-                return (false, $"Error: the card's power must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
+                return (false, $"Error: invalid CardPower. It must be between {Constants.MinCardPower} and {Constants.MaxCardPower}");
             }
 
-            if (card.UpperHand < Constants.MinCardUpperHand || card.UpperHand > Constants.MaxCardUpperHand)
+            if (request.CardUpperHand < Constants.MinCardUpperHand || request.CardUpperHand > Constants.MaxCardUpperHand)
             {
-                return (false, $"Error: the card's upper hand value must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
+                return (false, $"Error: invalid CardUpperHand. It must be between {Constants.MinCardUpperHand} and {Constants.MaxCardUpperHand}");
             }
 
-            if (Enum.IsDefined(card.Type) == false)
+            if (Enum.IsDefined(request.CardType) == false)
             {
                 var validTypes = string.Join(", ", Enum.GetValues(typeof(CardType))
                                        .Cast<CardType>()
                                        .Select(cardType => $"{cardType} ({(int)cardType})"));
 
-                return (false, $"Error: invalid card type. The type must be one of the following: {validTypes}");
+                return (false, $"Error: invalid CardType. It must be one of the following: {validTypes}");
             }
 
             return (true, string.Empty);
@@ -236,13 +395,13 @@ namespace MedievalAutoBattler.Service
                       .Where(a => a.Id == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            // Deletes also all NpcsDeckEntries having the same Id of the card which is being deleted
+            // Deletes also all NpcsDeckEntries having the same CardId of the request which is being deleted
             await this._daoDbContext
                       .NpcsDeckEntries
                       .Where(a => a.CardId == request.CardId)
                       .ExecuteUpdateAsync(a => a.SetProperty(b => b.IsDeleted, true));
 
-            // Deletes also all saveCardEntries having the same Id of the card which is being deleted
+            // Deletes also all saveCardEntries having the same CardId of the request which is being deleted
             await this._daoDbContext
                       .PlayersCardEntries
                       .Where(a => a.CardId == request.CardId)
@@ -332,14 +491,14 @@ namespace MedievalAutoBattler.Service
 
             //Se não existir pelo menos uma carta de cada level não é possível fazer o seed dos NPCs.
             var countCardsLvl = cardsDB.GroupBy(a => a.Level).Count();
-            if (countCardsLvl < Constants.MaxCardLvl - Constants.MinCardLvl)
+            if (countCardsLvl < Constants.MaxCardLevel - Constants.MinCardLevel)
             {
                 return (null, "Error: not enough card variety for seeding NPCs. The existance of at least one card of each level is mandatory for seeding NPCs");
             }
 
             var npcsSeed = new List<Npc>();
 
-            for (int level = Constants.MinCardLvl; level <= Constants.MaxCardLvl; level++)
+            for (int level = Constants.MinCardLevel; level <= Constants.MaxCardLevel; level++)
             {
                 npcsSeed.AddRange(GenerateRandomNpcs(level, cardsDB));
             }
@@ -359,7 +518,7 @@ namespace MedievalAutoBattler.Service
         {
             var random = new Random();
 
-            if (level == Constants.MinCardLvl || level == Constants.MaxCardLvl)
+            if (level == Constants.MinCardLevel || level == Constants.MaxCardLevel)
             {
                 var countBotsLvlZero = 0;
                 var countBotsLvlNine = 0;
@@ -376,10 +535,10 @@ namespace MedievalAutoBattler.Service
                     var validNpcDeckEntries = new List<NpcDeckEntry>();
                     for (int countCards = 0; countCards < 5; countCards++)
                     {
-                        // Obtaining one random card out of the list of filtered cards
+                        // Obtaining one random request out of the list of filtered cards
                         var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
 
-                        // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
+                        // "Converting" the random request into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
                             new NpcDeckEntry
@@ -437,16 +596,16 @@ namespace MedievalAutoBattler.Service
                         // Criating a new list of valid NPC deck entries:
                         var validNpcDeckEntries = new List<NpcDeckEntry>();
 
-                        // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                        // Obtaing a random request of cardLvl corresponding to its position in the sequence:
                         foreach (var cardLvl in levelSequence)
                         {
                             // Filtering all cards whose cardLvl is 1:
                             var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
 
-                            // Obtaining one random card out of the list of filtered cards
+                            // Obtaining one random request out of the list of filtered cards
                             var card = cardsFiltered.OrderBy(a => random.Next()).Take(1).FirstOrDefault();
 
-                            // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
+                            // "Converting" the random request into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                             validNpcDeckEntries.Add
                             (
                                 new NpcDeckEntry
@@ -503,10 +662,10 @@ namespace MedievalAutoBattler.Service
                                 // Filtering all cards whose cardLvl is 8:
                                 var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
 
-                                // Obtaining one random card out of the list of filtered cards
+                                // Obtaining one random request out of the list of filtered cards
                                 var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
 
-                                // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
+                                // "Converting" the random request into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:                               
                                 validNpcDeckEntries.Add
                                 (
                                     new NpcDeckEntry
@@ -560,16 +719,16 @@ namespace MedievalAutoBattler.Service
                     //ex.: cardLvl == 6 and  i == 1 => (4, 4, 6, 8, 8 )
                     var levelSequence = Helper.GetPowerSequence(level, i);
 
-                    // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                    // Obtaing a random request of cardLvl corresponding to its position in the sequence:
                     foreach (var cardLvl in levelSequence)
                     {
                         // Filtering all cards by cardLvl (2, 3, 4, 5, 6 or 7):
                         var cardsFiltered = cardsDB.Where(a => a.Level == cardLvl).ToList();
 
-                        // Obtaing a random card of cardLvl corresponding to its position in the sequence:
+                        // Obtaing a random request of cardLvl corresponding to its position in the sequence:
                         var card = cardsFiltered.OrderBy(a => random.Next()).FirstOrDefault();
 
-                        // "Converting" the random card into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
+                        // "Converting" the random request into a new NPC DECK ENTRY and adding it to a new list of valid deck entries:
                         validNpcDeckEntries.Add
                         (
                             new NpcDeckEntry
