@@ -1,4 +1,5 @@
 using MedievalAutoBattler.Service;
+using MedievalAutoBattler.Services;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -8,8 +9,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<DevsService>();
 builder.Services.AddScoped<AdminsService>();
-builder.Services.AddScoped<AdminsDeleteDbDataService>();
 builder.Services.AddScoped<PlayersService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -22,7 +23,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         );
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {

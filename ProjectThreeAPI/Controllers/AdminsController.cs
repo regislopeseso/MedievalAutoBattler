@@ -1,6 +1,8 @@
-﻿using MedievalAutoBattler.Models.Dtos.Request.Admin;
+﻿using MedievalAutoBattler.Models.Dtos.Request.Admins;
+using MedievalAutoBattler.Models.Dtos.Request.Devs;
 using MedievalAutoBattler.Models.Dtos.Response;
-using MedievalAutoBattler.Models.Dtos.Response.Admin;
+using MedievalAutoBattler.Models.Dtos.Response.Admins;
+using MedievalAutoBattler.Models.Dtos.Response.Devs;
 using MedievalAutoBattler.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,21 +31,7 @@ namespace MedievalAutoBattler.Controllers
             };
 
             return new JsonResult(response);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SeedCards(AdminsSeedCardsRequest request)
-        {
-            var (content, message) = await this._adminsService.SeedCards(request);
-
-            var response = new Response<AdminsSeedCardsResponse>
-            {
-                Content = content,
-                Message = message
-            };
-
-            return new JsonResult(response);
-        }
+        }        
 
         [HttpGet]
         public async Task<IActionResult> FilterCards(AdminsFilterCardsRequest request)
@@ -114,21 +102,7 @@ namespace MedievalAutoBattler.Controllers
 
             return new JsonResult(response);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> SeedNpcs(AdminsSeedNpcsRequest request)
-        {
-            var (content, message) = await this._adminsService.SeedNpcs(request);
-
-            var response = new Response<AdminsSeedNpcsResponse>
-            {
-                Content = content,
-                Message = message
-            };
-
-            return new JsonResult(response);
-        }
-        
+                  
         [HttpGet]
         public async Task<IActionResult> GetNpcs(AdminsGetNpcsRequest request) //Corrigir a filtragem desse Enpoint
         {
@@ -171,37 +145,5 @@ namespace MedievalAutoBattler.Controllers
             return new JsonResult(response);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SeedAll(AdminsSeedAllRequest seedAllRequest)
-        {          
-            var (SeedCardsContent, SeedCardsCardsMessage) = await this._adminsService.SeedCards(seedAllRequest.AdminSeedCardsRequest);   
-            var (SeedNpcsContent, SeedNpcsMessage) = await this._adminsService.SeedNpcs(seedAllRequest.AdminSeedNpcsRequest);
-
-            var response = new Response<AdminsSeedAllResponse>()
-            {
-                Content = new AdminsSeedAllResponse()
-                {
-                    AdminsSeedCardsResponse = SeedCardsContent,
-                    AdminsSeedNpcsResponse = SeedNpcsContent
-                },
-                Message = SeedCardsCardsMessage + SeedNpcsMessage
-            };      
-
-            return new JsonResult(response);
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> DeleteDbData([FromServices] AdminsDeleteDbDataService adminsDeleteDbDateService, AdminsDeleteDbDataRequest request)
-        {
-            var (content, message) = await adminsDeleteDbDateService.DeleteDbData(request);
-
-            var response = new Response<AdminsDeleteDbDataResponse>()
-            {
-                Content = content,
-                Message = message
-            };
-
-            return new JsonResult(response);
-        }
     }
 }

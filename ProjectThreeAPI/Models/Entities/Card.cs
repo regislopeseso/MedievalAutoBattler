@@ -16,5 +16,6 @@ namespace MedievalAutoBattler.Models.Entities
         public int Level { get; set; }
         public CardType Type { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public bool IsDummy { get; set; } = false;
     }
 }
